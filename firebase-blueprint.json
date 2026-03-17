@@ -1,0 +1,102 @@
+{
+  "entities": {
+    "User": {
+      "title": "User",
+      "description": "User profile information",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string", "description": "Display name" },
+        "email": { "type": "string", "format": "email", "description": "User email" },
+        "mobile": { "type": "string", "description": "Mobile number" },
+        "partnerId": { "type": "string", "description": "UID of the linked partner" },
+        "partnerCode": { "type": "string", "description": "Unique code for linking" },
+        "isAdmin": { "type": "boolean", "description": "Admin status" },
+        "gender": { "type": "string", "enum": ["Male", "Female", "Other"], "description": "User gender for theming" },
+        "chatBackground": { "type": "string", "description": "Custom chat background URL or color" },
+        "isTyping": { "type": "boolean", "description": "Whether the user is currently typing" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["name", "email", "partnerCode"]
+    },
+    "Expense": {
+      "title": "Expense",
+      "description": "Shared expense record",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string", "description": "Creator UID" },
+        "partnerId": { "type": "string", "description": "Partner UID at time of creation" },
+        "amount": { "type": "number" },
+        "paidBy": { "type": "string", "description": "Name of person who paid" },
+        "paymentMode": { "type": "string" },
+        "category": { "type": "string" },
+        "paidTo": { "type": "string" },
+        "location": { "type": "string" },
+        "description": { "type": "string" },
+        "date": { "type": "string", "format": "date" },
+        "receiptUrl": { "type": "string", "description": "Base64 encoded file data" },
+        "receiptName": { "type": "string", "description": "Name of the uploaded file" },
+        "receiptType": { "type": "string", "description": "MIME type of the file" },
+        "receivableFrom": { "type": "string", "description": "Name of person who owes this money back to the partners" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["userId", "amount", "category", "date"]
+    },
+    "Chat": {
+      "title": "Chat",
+      "description": "Message between partners",
+      "type": "object",
+      "properties": {
+        "senderId": { "type": "string" },
+        "receiverId": { "type": "string" },
+        "message": { "type": "string" },
+        "type": { "type": "string", "enum": ["text", "photo", "video", "file", "voice"], "description": "Type of message content" },
+        "expenseRefId": { "type": "string" },
+        "voiceData": { "type": "string", "description": "Base64 encoded voice note" },
+        "fileData": { "type": "string", "description": "Base64 encoded file data" },
+        "fileName": { "type": "string", "description": "Name of the uploaded file" },
+        "isOnceView": { "type": "boolean", "description": "Whether the media is view-once" },
+        "viewedAt": { "type": "string", "format": "date-time", "description": "Timestamp when receiver viewed once-view media" },
+        "read": { "type": "boolean", "description": "Whether the message has been read by receiver" },
+        "isPinned": { "type": "boolean", "description": "Whether the message is pinned" },
+        "reactions": { 
+          "type": "object", 
+          "description": "Emoji reactions map: { emoji: [userIds] }" 
+        },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["senderId", "receiverId"]
+    },
+    "Notification": {
+      "title": "Notification",
+      "description": "In-app notification for users",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string", "description": "Target user UID" },
+        "title": { "type": "string" },
+        "message": { "type": "string" },
+        "type": { "type": "string", "enum": ["chat", "expense", "reminder"] },
+        "read": { "type": "boolean" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["userId", "title", "message", "read", "createdAt"]
+    }
+  },
+  "firestore": {
+    "users/{userId}": {
+      "schema": "User",
+      "description": "User profiles"
+    },
+    "expenses/{expenseId}": {
+      "schema": "Expense",
+      "description": "Shared expenses"
+    },
+    "chats/{chatId}": {
+      "schema": "Chat",
+      "description": "Partner chat messages"
+    },
+    "notifications/{notificationId}": {
+      "schema": "Notification",
+      "description": "User notifications"
+    }
+  }
+}

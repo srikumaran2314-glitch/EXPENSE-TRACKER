@@ -1,0 +1,8 @@
+{
+  "name": "BUBU and DUDU Expense",
+  "description": "A cute and comprehensive financial management tool for BUBU and DUDU to track shared expenses, chat, and manage their budget.",
+  "requestFramePermissions": [
+    "camera",
+    "microphone"
+  ]
+}

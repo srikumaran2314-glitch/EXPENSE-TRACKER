@@ -1,0 +1,187 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // ===============================================================
+    // Assumed Data Model
+    // ===============================================================
+    //
+    // Collection: users
+    // Document ID: {userId}
+    // Fields:
+    //   - name: string (required)
+    //   - email: string (required, email format)
+    //   - partnerCode: string (required, unique-ish)
+    //   - partnerId: string (optional)
+    //   - status: string (optional, online/offline)
+    //   - lastSeen: timestamp (optional)
+    //   - isAdmin: bool (optional)
+    //   - createdAt: timestamp (required)
+    //
+    // Collection: expenses
+    // Document ID: {expenseId}
+    // Fields:
+    //   - userId: string (required, creator)
+    //   - partnerId: string (required, partner at creation)
+    //   - amount: number (required, positive)
+    //   - category: string (required)
+    //   - date: string (required, YYYY-MM-DD)
+    //   - paidBy: string (required)
+    //   - createdAt: timestamp (required)
+    //
+    // Collection: chats
+    // Document ID: {chatId}
+    // Fields:
+    //   - senderId: string (required)
+    //   - receiverId: string (required)
+    //   - message: string (required, max 1000 chars)
+    //   - createdAt: timestamp (required)
+    //
+    // Collection: notifications
+    // Document ID: {notificationId}
+    // Fields:
+    //   - userId: string (required, recipient)
+    //   - title: string (required)
+    //   - message: string (required)
+    //   - type: string (required, chat/expense/reminder)
+    //   - read: bool (required)
+    //   - createdAt: timestamp (required)
+    //
+    // ===============================================================
+
+    // ===============================================================
+    // Helper Functions
+    // ===============================================================
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    function isPartner(userId) {
+      return isAuthenticated() && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.partnerId == userId;
+    }
+
+    function isValidEmail(email) {
+      return email is string && email.matches("^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$");
+    }
+
+    function isValidDate(dateStr) {
+      return dateStr is string && dateStr.matches("^\\d{4}-\\d{2}-\\d{2}$");
+    }
+
+    function isAdmin() {
+      return isAuthenticated() && 
+        (get(/databases/$(database)/documents/users/$(request.auth.uid)).data.isAdmin == true ||
+         (request.auth.token.email == "srikumaran2314@gmail.com" && request.auth.token.email_verified == true));
+    }
+
+    // ===============================================================
+    // Domain Validators
+    // ===============================================================
+
+    function isValidUser(data) {
+      return data.keys().hasAll(['name', 'email', 'partnerCode', 'createdAt']) &&
+             data.name is string && data.name.size() > 0 && data.name.size() < 100 &&
+             isValidEmail(data.email) &&
+             data.partnerCode is string && data.partnerCode.size() == 6 &&
+             (!('gender' in data) || data.gender in ['Male', 'Female', 'Other']) &&
+             (!('status' in data) || data.status in ['online', 'offline']) &&
+             (!('lastSeen' in data) || data.lastSeen is timestamp) &&
+             (!('chatBackground' in data) || (data.chatBackground is string && data.chatBackground.size() < 2000)) &&
+             (!('isTyping' in data) || data.isTyping is bool) &&
+             data.createdAt is timestamp;
+    }
+
+    function isValidExpense(data) {
+      return data.keys().hasAll(['userId', 'partnerId', 'amount', 'category', 'date', 'paidBy', 'createdAt']) &&
+             data.userId is string && data.partnerId is string &&
+             data.amount is number && data.amount > 0 &&
+             data.category is string && data.category.size() > 0 &&
+             isValidDate(data.date) &&
+             data.paidBy is string &&
+             (!('receivableFrom' in data) || (data.receivableFrom is string && data.receivableFrom.size() <= 100)) &&
+             (!('receiptUrl' in data) || (data.receiptUrl is string && data.receiptUrl.size() < 1048576)) &&
+             (!('receiptName' in data) || (data.receiptName is string && data.receiptName.size() < 255)) &&
+             (!('receiptType' in data) || (data.receiptType is string && data.receiptType.size() < 100)) &&
+             data.createdAt is timestamp;
+    }
+
+    function isValidChat(data) {
+      return data.keys().hasAll(['senderId', 'receiverId', 'createdAt']) &&
+             data.senderId is string && data.receiverId is string &&
+             (!('message' in data) || (data.message is string && data.message.size() <= 1000)) &&
+             (!('type' in data) || data.type in ['text', 'photo', 'video', 'file', 'voice']) &&
+             (!('voiceData' in data) || (data.voiceData is string && data.voiceData.size() < 1048576)) &&
+             (!('fileData' in data) || (data.fileData is string && data.fileData.size() < 5242880)) &&
+             (!('fileName' in data) || (data.fileName is string && data.fileName.size() < 255)) &&
+             (!('isOnceView' in data) || data.isOnceView is bool) &&
+             (!('viewedAt' in data) || data.viewedAt is timestamp) &&
+             (!('read' in data) || data.read is bool) &&
+             (!('isPinned' in data) || data.isPinned is bool) &&
+             (!('reactions' in data) || data.reactions is map) &&
+             data.createdAt is timestamp;
+    }
+
+    function isValidNotification(data) {
+      return data.keys().hasAll(['userId', 'title', 'message', 'type', 'read', 'createdAt']) &&
+             data.userId is string && data.title is string && data.message is string &&
+             data.type in ['chat', 'expense', 'reminder'] &&
+             data.read is bool &&
+             data.createdAt is timestamp;
+    }
+
+    // ===============================================================
+    // Rules
+    // ===============================================================
+
+    match /codes/{code} {
+      allow read: if isAuthenticated();
+      allow create: if isAuthenticated() && request.resource.data.uid == request.auth.uid;
+    }
+
+    match /users/{userId} {
+      allow read: if isOwner(userId) || isAdmin() || isPartner(userId);
+      allow create: if isOwner(userId) && isValidUser(request.resource.data) && 
+                      (!('isAdmin' in request.resource.data) || request.resource.data.isAdmin == false);
+      allow update: if isOwner(userId) && isValidUser(request.resource.data) &&
+                      request.resource.data.email == resource.data.email &&
+                      request.resource.data.partnerCode == resource.data.partnerCode &&
+                      (!('isAdmin' in request.resource.data) || request.resource.data.isAdmin == resource.data.isAdmin);
+    }
+
+    match /expenses/{expenseId} {
+      allow read: if isAuthenticated() && (isOwner(resource.data.userId) || isOwner(resource.data.partnerId) || isAdmin());
+      allow create: if isAuthenticated() && isOwner(request.resource.data.userId) && isValidExpense(request.resource.data);
+      allow update: if isAuthenticated() && (isOwner(resource.data.userId) || isOwner(resource.data.partnerId) || isAdmin()) && 
+                      isValidExpense(request.resource.data) &&
+                      request.resource.data.userId == resource.data.userId &&
+                      request.resource.data.createdAt == resource.data.createdAt;
+      allow delete: if isAuthenticated() && (isOwner(resource.data.userId) || isAdmin());
+    }
+
+    match /chats/{chatId} {
+      allow read: if isAuthenticated() && (isOwner(resource.data.senderId) || isOwner(resource.data.receiverId) || isAdmin());
+      allow create: if isAuthenticated() && isOwner(request.resource.data.senderId) && isValidChat(request.resource.data);
+      allow update: if isAuthenticated() && (isOwner(resource.data.senderId) || isOwner(resource.data.receiverId) || isAdmin()) &&
+                      isValidChat(request.resource.data) &&
+                      request.resource.data.senderId == resource.data.senderId &&
+                      request.resource.data.createdAt == resource.data.createdAt;
+      allow delete: if isAuthenticated() && (isOwner(resource.data.senderId) || isOwner(resource.data.receiverId) || isAdmin());
+    }
+
+    match /notifications/{notificationId} {
+      allow read: if isAuthenticated() && isOwner(resource.data.userId);
+      allow create: if isAuthenticated() && isValidNotification(request.resource.data) && (isOwner(request.resource.data.userId) || isPartner(request.resource.data.userId));
+      allow update: if isAuthenticated() && isOwner(resource.data.userId) && 
+                      request.resource.data.diff(resource.data).affectedKeys().hasOnly(['read']);
+      allow delete: if isAuthenticated() && isOwner(resource.data.userId);
+    }
+
+    // Default deny
+    match /{path=**} {
+      allow read, write: if false;
+    }
+  }
+}
