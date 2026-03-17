@@ -1,21 +1,23 @@
 import React, { useState } from 'react';
 import { doc, getDoc, updateDoc } from 'firebase/firestore';
 import { db } from '../firebase';
-import { User, Link as LinkIcon, Copy, Check, Shield, Smartphone, Mail } from 'lucide-react';
-import { motion } from 'motion/react';
+import { User, Link as LinkIcon, Copy, Check, Shield, Smartphone, Mail, Edit2 } from 'lucide-react';
+import { motion, AnimatePresence } from 'motion/react';
 
 export default function Profile({ user }: { user: any }) {
   const [partnerCode, setPartnerCode] = useState('');
   const [copied, setCopied] = useState(false);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState({ type: '', text: '' });
+  const [isEditing, setIsEditing] = useState(false);
+  const [editData, setEditData] = useState({ name: user.name, mobile: user.mobile || '' });
 
   const isPink = user?.gender === 'Female';
   const cardBg = isPink ? 'bg-white' : 'bg-stone-900';
-  const borderCol = isPink ? 'border-stone-100' : 'border-white/10';
-  const textColor = isPink ? 'text-stone-900' : 'text-white';
-  const mutedText = isPink ? 'text-stone-500' : 'text-stone-400';
-  const boldTextColor = isPink ? 'text-stone-900' : 'text-white';
+  const borderCol = isPink ? 'border-stone-200' : 'border-white/10';
+  const textColor = isPink ? 'text-black' : 'text-white';
+  const mutedText = isPink ? 'text-stone-600' : 'text-stone-400';
+  const boldTextColor = isPink ? 'text-black' : 'text-white';
 
   const copyToClipboard = () => {
     navigator.clipboard.writeText(user.partnerCode);
@@ -55,6 +57,23 @@ export default function Profile({ user }: { user: any }) {
     }
   };
 
+  const handleUpdateProfile = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    try {
+      await updateDoc(doc(db, 'users', user.uid), {
+        name: editData.name,
+        mobile: editData.mobile
+      });
+      setIsEditing(false);
+      setMessage({ type: 'success', text: 'Profile updated successfully!' });
+    } catch (err: any) {
+      setMessage({ type: 'error', text: err.message });
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div className="max-w-4xl mx-auto space-y-8">
       <div>
@@ -81,7 +100,7 @@ export default function Profile({ user }: { user: any }) {
                     className={`px-3 py-1 rounded-full text-xs font-bold border transition-all ${
                       user.gender === g
                         ? 'bg-emerald-600 text-white border-emerald-600'
-                        : isPink ? 'bg-stone-50 text-stone-500 border-stone-200 hover:bg-stone-100' : 'bg-white/5 text-stone-400 border-white/10 hover:bg-white/10'
+                        : isPink ? 'bg-stone-50 text-black border-stone-200 hover:bg-stone-100' : 'bg-white/5 text-stone-400 border-white/10 hover:bg-white/10'
                     }`}
                   >
                     {g === 'Male' ? 'Black' : 'Pink'}
@@ -90,10 +109,66 @@ export default function Profile({ user }: { user: any }) {
               </div>
             </div>
 
-            <button className="mt-6 text-emerald-600 text-sm font-bold hover:underline">
-              Edit Photo
+            <button 
+              onClick={() => setIsEditing(true)}
+              className="mt-6 text-emerald-600 text-sm font-bold hover:underline"
+            >
+              Edit Profile
             </button>
           </div>
+
+          <AnimatePresence>
+            {isEditing && (
+              <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.95 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.95 }}
+                  className={`${cardBg} p-8 rounded-3xl shadow-2xl border ${borderCol} w-full max-w-md`}
+                >
+                  <h3 className={`text-2xl font-bold mb-6 ${boldTextColor}`}>Edit Profile</h3>
+                  <form onSubmit={handleUpdateProfile} className="space-y-6">
+                    <div className="space-y-2">
+                      <label className={`text-sm font-bold ${mutedText}`}>Display Name</label>
+                      <input
+                        type="text"
+                        className={`w-full px-4 py-3 rounded-xl border ${borderCol} ${isPink ? 'bg-stone-50' : 'bg-stone-800'} ${textColor} outline-none focus:ring-2 focus:ring-emerald-500`}
+                        value={editData.name}
+                        onChange={(e) => setEditData({ ...editData, name: e.target.value })}
+                        required
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <label className={`text-sm font-bold ${mutedText}`}>Mobile Number</label>
+                      <input
+                        type="tel"
+                        className={`w-full px-4 py-3 rounded-xl border ${borderCol} ${isPink ? 'bg-stone-50' : 'bg-stone-800'} ${textColor} outline-none focus:ring-2 focus:ring-emerald-500`}
+                        value={editData.mobile}
+                        onChange={(e) => setEditData({ ...editData, mobile: e.target.value })}
+                        placeholder="+91 00000 00000"
+                      />
+                    </div>
+                    <div className="flex gap-4 pt-4">
+                      <button
+                        type="button"
+                        onClick={() => setIsEditing(false)}
+                        className={`flex-1 px-6 py-3 rounded-xl font-bold ${isPink ? 'bg-stone-100 text-stone-600' : 'bg-white/5 text-stone-400'} hover:opacity-80 transition-all`}
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        type="submit"
+                        disabled={loading}
+                        className="flex-1 px-6 py-3 bg-emerald-600 text-white rounded-xl font-bold hover:bg-emerald-700 transition-all shadow-lg shadow-emerald-600/20"
+                      >
+                        {loading ? 'Saving...' : 'Save Changes'}
+                      </button>
+                    </div>
+                  </form>
+                </motion.div>
+              </div>
+            )}
+          </AnimatePresence>
 
           <div className={`${cardBg} p-6 rounded-3xl shadow-sm border ${borderCol} space-y-4`}>
             <div className={`flex items-center gap-3 ${mutedText}`}>

@@ -115,12 +115,16 @@ export default function Chat({ user, partner }: { user: any, partner: any }) {
   const [isOnceView, setIsOnceView] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [showGallery, setShowGallery] = useState(false);
+  const [galleryItems, setGalleryItems] = useState<any[]>([]);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isClearing, setIsClearing] = useState(false);
   const [isConfirmClearOpen, setIsConfirmClearOpen] = useState(false);
+  const [contextMenu, setContextMenu] = useState<{ x: number, y: number, msgId: string, isPinned: boolean } | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const observerRef = useRef<IntersectionObserver | null>(null);
   const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const longPressTimer = useRef<NodeJS.Timeout | null>(null);
 
   const BACKGROUNDS = [
     { id: 'default', name: 'Default', class: 'bg-stone-50/30' },
@@ -186,9 +190,26 @@ export default function Chat({ user, partner }: { user: any, partner: any }) {
     try {
       await updateDoc(doc(db, 'chats', messageId), { isPinned: !currentPinned });
       setActiveMessageId(null);
+      setContextMenu(null);
     } catch (err) {
       console.error("Error pinning message:", err);
     }
+  };
+
+  const handleContextMenu = (e: React.MouseEvent, msgId: string, isPinned: boolean) => {
+    e.preventDefault();
+    setContextMenu({ x: e.clientX, y: e.clientY, msgId, isPinned });
+  };
+
+  const handleTouchStart = (msgId: string, isPinned: boolean) => {
+    longPressTimer.current = setTimeout(() => {
+      setActiveMessageId(msgId);
+      // On mobile we might just want to toggle the overlay
+    }, 500);
+  };
+
+  const handleTouchEnd = () => {
+    if (longPressTimer.current) clearTimeout(longPressTimer.current);
   };
 
 
@@ -201,17 +222,17 @@ export default function Chat({ user, partner }: { user: any, partner: any }) {
   };
 
   const isPink = user?.gender === 'Female';
-  const primaryColor = isPink ? 'bg-[#FFB7C5]' : 'bg-black';
-  const primaryHover = isPink ? 'hover:bg-[#FFA4B4]' : 'hover:bg-stone-900';
-  const primaryText = isPink ? 'text-[#FFB7C5]' : 'text-black';
-  const primaryBadge = isPink ? 'bg-[#FFF0F3] text-[#FFB7C5]' : 'bg-stone-100 text-black';
-  const primaryRing = isPink ? 'focus-within:ring-[#FFB7C5]' : 'focus-within:ring-black';
-  const primaryBorder = isPink ? 'border-[#FFB7C5]/20' : 'border-black/20';
+  const primaryColor = isPink ? 'bg-[#FF8DA1]' : 'bg-black';
+  const primaryHover = isPink ? 'hover:bg-[#FF7A91]' : 'hover:bg-stone-900';
+  const primaryText = isPink ? 'text-[#FF8DA1]' : 'text-black';
+  const primaryBadge = isPink ? 'bg-[#FFF0F3] text-[#FF8DA1]' : 'bg-stone-100 text-black';
+  const primaryRing = isPink ? 'focus-within:ring-[#FF8DA1]' : 'focus-within:ring-black';
+  const primaryBorder = isPink ? 'border-[#FF8DA1]/20' : 'border-black/20';
   const cardBg = isPink ? 'bg-white' : 'bg-stone-900';
-  const borderCol = isPink ? 'border-stone-100' : 'border-white/10';
-  const textColor = isPink ? 'text-stone-900' : 'text-white';
-  const mutedText = isPink ? 'text-stone-500' : 'text-stone-400';
-  const boldTextColor = isPink ? 'text-stone-900' : 'text-white';
+  const borderCol = isPink ? 'border-stone-200' : 'border-white/10';
+  const textColor = isPink ? 'text-black' : 'text-white';
+  const mutedText = isPink ? 'text-stone-600' : 'text-stone-400';
+  const boldTextColor = isPink ? 'text-black' : 'text-white';
 
   const [isRecording, setIsRecording] = useState(false);
   const [mediaRecorder, setMediaRecorder] = useState<MediaRecorder | null>(null);
@@ -368,8 +389,9 @@ export default function Chat({ user, partner }: { user: any, partner: any }) {
     );
 
     const unsubscribe = onSnapshot(q, (snapshot) => {
-      const docs = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-      setMessages(docs);
+      const msgs = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })) as any[];
+      setMessages(msgs);
+      setGalleryItems(msgs.filter(m => m.type === 'photo' || m.type === 'video'));
       setLoading(false);
     });
 
@@ -539,6 +561,13 @@ export default function Chat({ user, partner }: { user: any, partner: any }) {
               <Search className="w-5 h-5" />
             </button>
           )}
+          <button
+            onClick={() => setShowGallery(true)}
+            className={`p-2 rounded-xl hover:bg-stone-100 transition-all ${mutedText}`}
+            title="Media Gallery"
+          >
+            <ImageIcon className="w-5 h-5" />
+          </button>
           <button 
             onClick={() => setIsBackgroundModalOpen(true)}
             className={`p-2 rounded-xl hover:bg-stone-100 transition-all ${mutedText}`}
@@ -577,6 +606,61 @@ export default function Chat({ user, partner }: { user: any, partner: any }) {
           </div>
         </div>
       </div>
+
+      {/* Media Gallery Modal */}
+      <AnimatePresence>
+        {showGallery && (
+          <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/90 backdrop-blur-md">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.9 }}
+              className="w-full max-w-5xl h-[80vh] flex flex-col"
+            >
+              <div className="flex justify-between items-center mb-6">
+                <h3 className="text-2xl font-bold text-white flex items-center gap-3">
+                  <ImageIcon className="w-6 h-6 text-pink-500" />
+                  Shared Media
+                </h3>
+                <button onClick={() => setShowGallery(false)} className="p-2 text-white hover:bg-white/10 rounded-full">
+                  <X className="w-8 h-8" />
+                </button>
+              </div>
+
+              <div className="flex-1 overflow-y-auto pr-2">
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+                  {galleryItems.length === 0 ? (
+                    <div className="col-span-full h-64 flex flex-col items-center justify-center text-stone-500">
+                      <ImageIcon className="w-12 h-12 mb-4 opacity-20" />
+                      <p>No photos or videos shared yet</p>
+                    </div>
+                  ) : (
+                    galleryItems.map((item) => (
+                      <div key={item.id} className="aspect-square rounded-2xl overflow-hidden bg-stone-800 relative group cursor-pointer">
+                        {item.type === 'photo' ? (
+                          <img src={item.fileData} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center bg-stone-800">
+                            <Video className="w-8 h-8 text-stone-600" />
+                            <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-black/40">
+                              <Play className="w-8 h-8 text-white fill-white" />
+                            </div>
+                          </div>
+                        )}
+                        <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-end p-3">
+                          <p className="text-[10px] text-white font-medium truncate">
+                            {item.createdAt ? format(item.createdAt.toDate(), 'MMM dd, yyyy') : 'Recently'}
+                          </p>
+                        </div>
+                      </div>
+                    ))
+                  )}
+                </div>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
 
       {pinnedMessages.length > 0 && (
         <div className={`px-6 py-2 border-b ${borderCol} ${isPink ? 'bg-pink-50/50' : 'bg-white/5'} flex items-center gap-3 overflow-x-auto scrollbar-hide`}>
@@ -630,6 +714,9 @@ export default function Chat({ user, partner }: { user: any, partner: any }) {
               data-is-unread={msg.senderId !== user.uid && !msg.read}
               className={`flex group ${msg.senderId === user.uid ? 'justify-end' : 'justify-start'}`}
               onClick={() => setActiveMessageId(activeMessageId === msg.id ? null : msg.id)}
+              onContextMenu={(e) => handleContextMenu(e, msg.id, msg.isPinned)}
+              onTouchStart={() => handleTouchStart(msg.id, msg.isPinned)}
+              onTouchEnd={handleTouchEnd}
             >
               <div className={`max-w-[85%] lg:max-w-[75%] space-y-1 relative`}>
                 <div 
@@ -748,7 +835,7 @@ export default function Chat({ user, partner }: { user: any, partner: any }) {
                         }}
                         className={`flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold border transition-all ${
                           users.includes(user.uid)
-                            ? `${isPink ? 'bg-[#FFB7C5]/10 border-[#FFB7C5] text-[#FFB7C5]' : 'bg-black/10 border-black text-black'}`
+                            ? `${isPink ? 'bg-[#FF8DA1]/10 border-[#FF8DA1] text-[#FF8DA1]' : 'bg-black/10 border-black text-black'}`
                             : 'bg-white border-stone-100 text-stone-500 hover:border-stone-300'
                         }`}
                       >
@@ -955,6 +1042,42 @@ export default function Chat({ user, partner }: { user: any, partner: any }) {
         onConfirm={handleDelete}
         onCancel={() => setDeleteId(null)}
       />
+
+      {/* Context Menu */}
+      <AnimatePresence>
+        {contextMenu && (
+          <>
+            <div className="fixed inset-0 z-[110]" onClick={() => setContextMenu(null)} />
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              style={{ top: contextMenu.y, left: contextMenu.x }}
+              className={`fixed z-[120] w-48 rounded-2xl shadow-2xl border ${borderCol} ${cardBg} overflow-hidden`}
+            >
+              <button
+                onClick={() => handlePinMessage(contextMenu.msgId, contextMenu.isPinned)}
+                className={`w-full flex items-center gap-3 px-4 py-3 text-sm font-bold transition-all ${
+                  contextMenu.isPinned ? 'text-blue-500 hover:bg-blue-50' : `${textColor} hover:bg-stone-100`
+                }`}
+              >
+                <Pin className="w-4 h-4" />
+                {contextMenu.isPinned ? 'Unpin Message' : 'Pin Message'}
+              </button>
+              <button
+                onClick={() => {
+                  setDeleteId(contextMenu.msgId);
+                  setContextMenu(null);
+                }}
+                className="w-full flex items-center gap-3 px-4 py-3 text-sm text-red-500 hover:bg-red-50 transition-all font-bold"
+              >
+                <Trash2 className="w-4 h-4" />
+                Delete Message
+              </button>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
 
       {/* Background Picker Modal */}
       <AnimatePresence>

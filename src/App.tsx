@@ -15,7 +15,9 @@ import {
   PlusCircle,
   TrendingUp,
   PieChart as PieChartIcon,
-  Bell
+  Bell,
+  CheckSquare,
+  Heart
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { format } from 'date-fns';
@@ -26,6 +28,9 @@ import Profile from './pages/Profile';
 import Admin from './pages/Admin';
 import Login from './pages/Login';
 import Signup from './pages/Signup';
+import Budgets from './pages/Budgets';
+import Wishlist from './pages/Wishlist';
+import TodoList from './pages/TodoList';
 
 const Layout = ({ children, user, onLogout }: { children: React.ReactNode, user: any, onLogout: () => void }) => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
@@ -34,6 +39,9 @@ const Layout = ({ children, user, onLogout }: { children: React.ReactNode, user:
   const navItems = [
     { name: 'Dashboard', icon: LayoutDashboard, path: '/' },
     { name: 'Expenses', icon: Receipt, path: '/expenses' },
+    { name: 'Budgets', icon: TrendingUp, path: '/budgets' },
+    { name: 'Wishlist', icon: Heart, path: '/wishlist' },
+    { name: 'Tasks', icon: CheckSquare, path: '/todos' },
     { name: 'Chat', icon: MessageSquare, path: '/chat' },
     { name: 'Profile', icon: User, path: '/profile' },
   ];
@@ -44,8 +52,8 @@ const Layout = ({ children, user, onLogout }: { children: React.ReactNode, user:
 
   const isPink = user?.gender === 'Female';
   const themeBg = isPink ? 'bg-[#FFF0F3]' : 'bg-black';
-  const primaryText = isPink ? 'text-[#FFB7C5]' : 'text-white';
-  const activeNav = isPink ? 'bg-[#FFB7C5] text-white' : 'bg-white/10 text-white';
+  const primaryText = isPink ? 'text-[#FF8DA1]' : 'text-white';
+  const activeNav = isPink ? 'bg-[#FF8DA1] text-white' : 'bg-white/10 text-white';
   const sidebarBg = isPink ? 'bg-white' : 'bg-black border-white/10';
   const headerBg = isPink ? 'bg-white' : 'bg-black border-white/10';
   const cardBg = isPink ? 'bg-white' : 'bg-stone-900';
@@ -136,7 +144,7 @@ const Layout = ({ children, user, onLogout }: { children: React.ReactNode, user:
             >
               <div className="flex flex-col h-full">
                 <div className="p-6 flex items-center justify-between">
-                  <h1 className={`text-xl font-bold tracking-tight flex items-center gap-2 ${isPink ? 'text-[#FFB7C5]' : 'text-white'}`}>
+                  <h1 className={`text-xl font-bold tracking-tight flex items-center gap-2 ${isPink ? 'text-[#FF8DA1]' : 'text-white'}`}>
                     <TrendingUp className="w-6 h-6" />
                     BUBU & DUDU
                   </h1>
@@ -159,7 +167,7 @@ const Layout = ({ children, user, onLogout }: { children: React.ReactNode, user:
                       className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${
                         location.pathname === item.path
                           ? activeNav + ' font-medium'
-                          : isPink ? 'text-stone-500 hover:bg-[#FFF0F3] hover:text-[#FFB7C5]' : 'text-stone-400 hover:bg-white/5 hover:text-white'
+                          : isPink ? 'text-black hover:bg-[#FFF0F3] hover:text-[#FF8DA1]' : 'text-stone-400 hover:bg-white/5 hover:text-white'
                       }`}
                     >
                       <item.icon className="w-5 h-5" />
@@ -252,7 +260,7 @@ const Layout = ({ children, user, onLogout }: { children: React.ReactNode, user:
                 <p className={`text-sm font-medium ${isPink ? 'text-stone-900' : 'text-white'}`}>{user?.name}</p>
                 <p className={`text-xs ${isPink ? 'text-stone-500' : 'text-stone-400'}`}>{user?.email}</p>
               </div>
-              <div className="w-10 h-10 rounded-full flex items-center justify-center text-white font-bold" style={{ backgroundColor: isPink ? '#FFB7C5' : '#333' }}>
+              <div className="w-10 h-10 rounded-full flex items-center justify-center text-white font-bold" style={{ backgroundColor: isPink ? '#FF8DA1' : '#333' }}>
                 {user?.name?.[0]}
               </div>
             </div>
@@ -380,6 +388,9 @@ export default function App() {
                 <Routes>
                   <Route path="/" element={<Dashboard user={user} partner={partner} />} />
                   <Route path="/expenses" element={<Expenses user={user} partner={partner} />} />
+                  <Route path="/budgets" element={<Budgets user={user} />} />
+                  <Route path="/wishlist" element={<Wishlist user={user} />} />
+                  <Route path="/todos" element={<TodoList user={user} />} />
                   <Route path="/chat" element={<Chat user={user} partner={partner} />} />
                   <Route path="/profile" element={<Profile user={user} />} />
                   <Route path="/admin" element={<Admin user={user} />} />

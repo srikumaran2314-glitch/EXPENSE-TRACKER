@@ -79,6 +79,53 @@
         "createdAt": { "type": "string", "format": "date-time" }
       },
       "required": ["userId", "title", "message", "read", "createdAt"]
+    },
+    "Budget": {
+      "title": "Budget",
+      "description": "Monthly budget for a category",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "partnerId": { "type": "string" },
+        "category": { "type": "string" },
+        "amount": { "type": "number" },
+        "month": { "type": "string", "description": "YYYY-MM format" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["userId", "partnerId", "category", "amount", "month"]
+    },
+    "WishlistItem": {
+      "title": "WishlistItem",
+      "description": "Item the couple wants to buy or save for",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "partnerId": { "type": "string" },
+        "title": { "type": "string" },
+        "description": { "type": "string" },
+        "estimatedAmount": { "type": "number" },
+        "savedAmount": { "type": "number" },
+        "priority": { "type": "string", "enum": ["Low", "Medium", "High"] },
+        "isCompleted": { "type": "boolean" },
+        "imageUrl": { "type": "string", "description": "Base64 encoded image" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["userId", "partnerId", "title", "estimatedAmount"]
+    },
+    "Todo": {
+      "title": "Todo",
+      "description": "Shared task for the couple",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "partnerId": { "type": "string" },
+        "task": { "type": "string" },
+        "isCompleted": { "type": "boolean" },
+        "dueDate": { "type": "string", "format": "date" },
+        "priority": { "type": "string", "enum": ["Low", "Medium", "High"] },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["userId", "partnerId", "task"]
     }
   },
   "firestore": {
@@ -97,6 +144,18 @@
     "notifications/{notificationId}": {
       "schema": "Notification",
       "description": "User notifications"
+    },
+    "budgets/{budgetId}": {
+      "schema": "Budget",
+      "description": "Category budgets"
+    },
+    "wishlist/{wishlistId}": {
+      "schema": "WishlistItem",
+      "description": "Shared wishlist items"
+    },
+    "todos/{todoId}": {
+      "schema": "Todo",
+      "description": "Shared tasks"
     }
   }
 }

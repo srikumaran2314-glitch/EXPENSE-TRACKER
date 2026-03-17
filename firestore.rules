@@ -132,6 +132,38 @@ service cloud.firestore {
              data.createdAt is timestamp;
     }
 
+    function isValidBudget(data) {
+      return data.keys().hasAll(['userId', 'partnerId', 'category', 'amount', 'month']) &&
+             data.userId is string && data.partnerId is string &&
+             data.category is string && data.category.size() > 0 &&
+             data.amount is number && data.amount >= 0 &&
+             data.month is string && data.month.matches("^\\d{4}-\\d{2}$") &&
+             (!('createdAt' in data) || data.createdAt is timestamp);
+    }
+
+    function isValidWishlist(data) {
+      return data.keys().hasAll(['userId', 'partnerId', 'title', 'estimatedAmount']) &&
+             data.userId is string && data.partnerId is string &&
+             data.title is string && data.title.size() > 0 && data.title.size() < 200 &&
+             (!('description' in data) || (data.description is string && data.description.size() < 1000)) &&
+             data.estimatedAmount is number && data.estimatedAmount >= 0 &&
+             (!('savedAmount' in data) || (data.savedAmount is number && data.savedAmount >= 0)) &&
+             (!('priority' in data) || data.priority in ['Low', 'Medium', 'High']) &&
+             (!('isCompleted' in data) || data.isCompleted is bool) &&
+             (!('imageUrl' in data) || (data.imageUrl is string && data.imageUrl.size() < 1048576)) &&
+             (!('createdAt' in data) || data.createdAt is timestamp);
+    }
+
+    function isValidTodo(data) {
+      return data.keys().hasAll(['userId', 'partnerId', 'task']) &&
+             data.userId is string && data.partnerId is string &&
+             data.task is string && data.task.size() > 0 && data.task.size() < 500 &&
+             (!('isCompleted' in data) || data.isCompleted is bool) &&
+             (!('dueDate' in data) || isValidDate(data.dueDate)) &&
+             (!('priority' in data) || data.priority in ['Low', 'Medium', 'High']) &&
+             (!('createdAt' in data) || data.createdAt is timestamp);
+    }
+
     // ===============================================================
     // Rules
     // ===============================================================
@@ -177,6 +209,31 @@ service cloud.firestore {
       allow update: if isAuthenticated() && isOwner(resource.data.userId) && 
                       request.resource.data.diff(resource.data).affectedKeys().hasOnly(['read']);
       allow delete: if isAuthenticated() && isOwner(resource.data.userId);
+    }
+
+    match /budgets/{budgetId} {
+      allow read: if isAuthenticated() && (isOwner(resource.data.userId) || isOwner(resource.data.partnerId) || isAdmin());
+      allow create: if isAuthenticated() && isOwner(request.resource.data.userId) && isValidBudget(request.resource.data);
+      allow update: if isAuthenticated() && (isOwner(resource.data.userId) || isOwner(resource.data.partnerId) || isAdmin()) && 
+                      isValidBudget(request.resource.data) &&
+                      request.resource.data.userId == resource.data.userId;
+      allow delete: if isAuthenticated() && (isOwner(resource.data.userId) || isAdmin());
+    }
+
+    match /wishlist/{wishlistId} {
+      allow read: if isAuthenticated() && (isOwner(resource.data.userId) || isOwner(resource.data.partnerId) || isAdmin());
+      allow create: if isAuthenticated() && isOwner(request.resource.data.userId) && isValidWishlist(request.resource.data);
+      allow update: if isAuthenticated() && (isOwner(resource.data.userId) || isOwner(resource.data.partnerId) || isAdmin()) && 
+                      isValidWishlist(request.resource.data);
+      allow delete: if isAuthenticated() && (isOwner(resource.data.userId) || isAdmin());
+    }
+
+    match /todos/{todoId} {
+      allow read: if isAuthenticated() && (isOwner(resource.data.userId) || isOwner(resource.data.partnerId) || isAdmin());
+      allow create: if isAuthenticated() && isOwner(request.resource.data.userId) && isValidTodo(request.resource.data);
+      allow update: if isAuthenticated() && (isOwner(resource.data.userId) || isOwner(resource.data.partnerId) || isAdmin()) && 
+                      isValidTodo(request.resource.data);
+      allow delete: if isAuthenticated() && (isOwner(resource.data.userId) || isAdmin());
     }
 
     // Default deny

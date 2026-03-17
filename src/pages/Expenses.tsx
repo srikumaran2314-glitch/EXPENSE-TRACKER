@@ -54,17 +54,17 @@ export default function Expenses({ user, partner }: { user: any, partner: any })
   const [isBulkDeleting, setIsBulkDeleting] = useState(false);
 
   const isPink = user?.gender === 'Female';
-  const primaryColor = isPink ? 'bg-[#FFB7C5]' : 'bg-white';
-  const primaryHover = isPink ? 'hover:bg-[#FFA4B4]' : 'hover:bg-stone-200';
-  const primaryRing = isPink ? 'focus:ring-[#FFB7C5]' : 'focus:ring-white/50';
-  const primaryShadow = isPink ? 'shadow-[#FFB7C5]/20' : 'shadow-white/10';
-  const primaryBadge = isPink ? 'bg-[#FFF0F3] text-[#FFB7C5]' : 'bg-white/10 text-white';
-  const primaryText = isPink ? 'text-[#FFB7C5]' : 'text-white';
+  const primaryColor = isPink ? 'bg-[#FF8DA1]' : 'bg-white';
+  const primaryHover = isPink ? 'hover:bg-[#FF7A91]' : 'hover:bg-stone-200';
+  const primaryRing = isPink ? 'focus:ring-[#FF8DA1]' : 'focus:ring-white/50';
+  const primaryShadow = isPink ? 'shadow-[#FF8DA1]/20' : 'shadow-white/10';
+  const primaryBadge = isPink ? 'bg-[#FFF0F3] text-[#FF8DA1]' : 'bg-white/10 text-white';
+  const primaryText = isPink ? 'text-[#FF8DA1]' : 'text-white';
   const cardBg = isPink ? 'bg-white' : 'bg-stone-900';
-  const borderCol = isPink ? 'border-stone-100' : 'border-white/10';
-  const textColor = isPink ? 'text-stone-900' : 'text-white';
-  const mutedText = isPink ? 'text-stone-500' : 'text-stone-400';
-  const boldTextColor = isPink ? 'text-stone-900' : 'text-white';
+  const borderCol = isPink ? 'border-stone-200' : 'border-white/10';
+  const textColor = isPink ? 'text-black' : 'text-white';
+  const mutedText = isPink ? 'text-stone-600' : 'text-stone-400';
+  const boldTextColor = isPink ? 'text-black' : 'text-white';
 
   const [formData, setFormData] = useState({
     amount: '',
@@ -523,7 +523,7 @@ export default function Expenses({ user, partner }: { user: any, partner: any })
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse">
             <thead>
-              <tr className={`${isPink ? 'bg-stone-50' : 'bg-white/5'} border-b ${borderCol}`}>
+              <tr className={`${isPink ? 'bg-stone-100' : 'bg-white/5'} border-b ${borderCol}`}>
                 <th className="px-6 py-4">
                   <input 
                     type="checkbox" 
@@ -532,13 +532,13 @@ export default function Expenses({ user, partner }: { user: any, partner: any })
                     onChange={toggleSelectAll}
                   />
                 </th>
-                <th className={`px-6 py-4 text-xs font-bold ${mutedText} uppercase tracking-wider`}>Date</th>
-                <th className={`px-6 py-4 text-xs font-bold ${mutedText} uppercase tracking-wider`}>Category</th>
-                <th className={`px-6 py-4 text-xs font-bold ${mutedText} uppercase tracking-wider`}>Paid To</th>
-                <th className={`px-6 py-4 text-xs font-bold ${mutedText} uppercase tracking-wider`}>Amount</th>
-                <th className={`px-6 py-4 text-xs font-bold ${mutedText} uppercase tracking-wider`}>Payment Info</th>
-                <th className={`px-6 py-4 text-xs font-bold ${mutedText} uppercase tracking-wider`}>Settlement Status</th>
-                <th className={`px-6 py-4 text-xs font-bold ${mutedText} uppercase tracking-wider`}></th>
+                <th className={`px-6 py-4 text-xs font-bold ${mutedText} uppercase tracking-wider whitespace-nowrap`}>Date</th>
+                <th className={`px-6 py-4 text-xs font-bold ${mutedText} uppercase tracking-wider whitespace-nowrap`}>Category</th>
+                <th className={`px-6 py-4 text-xs font-bold ${mutedText} uppercase tracking-wider whitespace-nowrap`}>Paid To</th>
+                <th className={`px-6 py-4 text-xs font-bold ${mutedText} uppercase tracking-wider whitespace-nowrap`}>Amount</th>
+                <th className={`px-6 py-4 text-xs font-bold ${mutedText} uppercase tracking-wider whitespace-nowrap`}>Payment Info</th>
+                <th className={`px-6 py-4 text-xs font-bold ${mutedText} uppercase tracking-wider whitespace-nowrap`}>Settlement Status</th>
+                <th className={`px-6 py-4 text-xs font-bold ${mutedText} uppercase tracking-wider whitespace-nowrap`}></th>
               </tr>
             </thead>
             <tbody className={`divide-y ${borderCol}`}>
@@ -824,7 +824,7 @@ export default function Expenses({ user, partner }: { user: any, partner: any })
 
                 <button
                   type="submit"
-                  className={`w-full ${isPink ? 'bg-[#FFB7C5] text-white' : 'bg-white text-black'} py-4 rounded-2xl font-bold text-lg transition-all shadow-xl shadow-emerald-500/10 hover:scale-[1.01] active:scale-[0.99]`}
+                  className={`w-full ${isPink ? 'bg-[#FF8DA1] text-white' : 'bg-white text-black'} py-4 rounded-2xl font-bold text-lg transition-all shadow-xl shadow-emerald-500/10 hover:scale-[1.01] active:scale-[0.99]`}
                 >
                   {editingExpense ? 'Update Expense' : 'Save Expense'}
                 </button>

@@ -1,0 +1,291 @@
+import React, { useState, useEffect } from 'react';
+import { collection, query, where, onSnapshot, addDoc, updateDoc, deleteDoc, doc, serverTimestamp, getDocs } from 'firebase/firestore';
+import { db } from '../firebase';
+import { PieChart, Plus, Trash2, Target, AlertCircle, CheckCircle2, ChevronLeft, ChevronRight, Wallet } from 'lucide-react';
+import { motion, AnimatePresence } from 'motion/react';
+import { format, startOfMonth, endOfMonth, addMonths, subMonths } from 'date-fns';
+
+export default function Budgets({ user }: { user: any }) {
+  const [budgets, setBudgets] = useState<any[]>([]);
+  const [expenses, setExpenses] = useState<any[]>([]);
+  const [currentMonth, setCurrentMonth] = useState(new Date());
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [newBudget, setNewBudget] = useState({
+    category: 'Food & Dining',
+    amount: ''
+  });
+
+  const isPink = user?.gender === 'Female';
+  const primaryColor = isPink ? 'bg-[#FF8DA1]' : 'bg-black';
+  const cardBg = isPink ? 'bg-white' : 'bg-stone-900';
+  const borderCol = isPink ? 'border-stone-200' : 'border-white/10';
+  const textColor = isPink ? 'text-black' : 'text-white';
+  const mutedText = isPink ? 'text-stone-600' : 'text-stone-400';
+  const boldTextColor = isPink ? 'text-black' : 'text-white';
+
+  const categories = [
+    'Food & Dining', 'Shopping', 'Transportation', 'Entertainment',
+    'Bills & Utilities', 'Health & Fitness', 'Travel', 'Education',
+    'Gifts & Donations', 'Investments', 'Others'
+  ];
+
+  useEffect(() => {
+    if (!user) return;
+
+    const monthStr = format(currentMonth, 'yyyy-MM');
+    const bQuery = query(
+      collection(db, 'budgets'),
+      where('partnerId', 'in', [user.uid, user.partnerId || '']),
+      where('month', '==', monthStr)
+    );
+
+    const unsubscribeBudgets = onSnapshot(bQuery, (snapshot) => {
+      setBudgets(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
+    });
+
+    const start = format(startOfMonth(currentMonth), 'yyyy-MM-dd');
+    const end = format(endOfMonth(currentMonth), 'yyyy-MM-dd');
+    const eQuery = query(
+      collection(db, 'expenses'),
+      where('partnerId', 'in', [user.uid, user.partnerId || '']),
+      where('date', '>=', start),
+      where('date', '<=', end)
+    );
+
+    const unsubscribeExpenses = onSnapshot(eQuery, (snapshot) => {
+      setExpenses(snapshot.docs.map(doc => doc.data()));
+    });
+
+    return () => {
+      unsubscribeBudgets();
+      unsubscribeExpenses();
+    };
+  }, [user, currentMonth]);
+
+  const handleAddBudget = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newBudget.amount) return;
+
+    try {
+      await addDoc(collection(db, 'budgets'), {
+        userId: user.uid,
+        partnerId: user.partnerId || user.uid,
+        category: newBudget.category,
+        amount: parseFloat(newBudget.amount),
+        month: format(currentMonth, 'yyyy-MM'),
+        createdAt: serverTimestamp()
+      });
+      setShowAddModal(false);
+      setNewBudget({ category: 'Food & Dining', amount: '' });
+    } catch (err) {
+      console.error('Error adding budget:', err);
+    }
+  };
+
+  const deleteBudget = async (id: string) => {
+    if (!window.confirm('Delete this budget?')) return;
+    try {
+      await deleteDoc(doc(db, 'budgets', id));
+    } catch (err) {
+      console.error('Error deleting budget:', err);
+    }
+  };
+
+  const getCategorySpending = (category: string) => {
+    return expenses
+      .filter(e => e.category === category)
+      .reduce((sum, e) => sum + e.amount, 0);
+  };
+
+  const totalBudget = budgets.reduce((sum, b) => sum + b.amount, 0);
+  const totalSpending = budgets.reduce((sum, b) => sum + getCategorySpending(b.category), 0);
+
+  return (
+    <div className="max-w-6xl mx-auto space-y-8">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+        <div>
+          <h2 className={`text-3xl font-bold ${boldTextColor} flex items-center gap-3`}>
+            <Wallet className="w-8 h-8 text-emerald-500" />
+            Monthly Budgets
+          </h2>
+          <p className={mutedText}>Plan your spending and track category limits</p>
+        </div>
+
+        <div className="flex items-center gap-4">
+          <div className={`flex items-center gap-2 ${cardBg} p-1 rounded-xl border ${borderCol}`}>
+            <button
+              onClick={() => setCurrentMonth(subMonths(currentMonth, 1))}
+              className={`p-2 hover:bg-stone-100 rounded-lg transition-all ${mutedText}`}
+            >
+              <ChevronLeft className="w-5 h-5" />
+            </button>
+            <span className={`px-4 font-bold ${boldTextColor}`}>
+              {format(currentMonth, 'MMMM yyyy')}
+            </span>
+            <button
+              onClick={() => setCurrentMonth(addMonths(currentMonth, 1))}
+              className={`p-2 hover:bg-stone-100 rounded-lg transition-all ${mutedText}`}
+            >
+              <ChevronRight className="w-5 h-5" />
+            </button>
+          </div>
+          <button
+            onClick={() => setShowAddModal(true)}
+            className={`flex items-center gap-2 px-6 py-3 ${primaryColor} text-white rounded-2xl font-bold hover:opacity-90 transition-all shadow-lg`}
+          >
+            <Plus className="w-5 h-5" />
+            Set Budget
+          </button>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className={`${cardBg} p-6 rounded-3xl border ${borderCol} shadow-sm`}>
+          <p className={`text-sm font-bold ${mutedText} uppercase mb-1`}>Total Budget</p>
+          <p className={`text-3xl font-bold ${boldTextColor}`}>₹{totalBudget.toLocaleString()}</p>
+        </div>
+        <div className={`${cardBg} p-6 rounded-3xl border ${borderCol} shadow-sm`}>
+          <p className={`text-sm font-bold ${mutedText} uppercase mb-1`}>Total Spent</p>
+          <p className={`text-3xl font-bold ${boldTextColor}`}>₹{totalSpending.toLocaleString()}</p>
+        </div>
+        <div className={`${cardBg} p-6 rounded-3xl border ${borderCol} shadow-sm`}>
+          <p className={`text-sm font-bold ${mutedText} uppercase mb-1`}>Remaining</p>
+          <p className={`text-3xl font-bold ${totalBudget - totalSpending < 0 ? 'text-red-500' : 'text-emerald-500'}`}>
+            ₹{(totalBudget - totalSpending).toLocaleString()}
+          </p>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {budgets.length === 0 ? (
+          <div className={`${cardBg} col-span-full p-12 rounded-3xl border ${borderCol} text-center space-y-4`}>
+            <Target className="w-16 h-16 text-stone-200 mx-auto" />
+            <h3 className={`text-xl font-bold ${boldTextColor}`}>No budgets set for this month</h3>
+            <p className={mutedText}>Start by setting a spending limit for a category.</p>
+            <button
+              onClick={() => setShowAddModal(true)}
+              className={`inline-flex items-center gap-2 px-6 py-3 ${primaryColor} text-white rounded-2xl font-bold hover:opacity-90 transition-all`}
+            >
+              <Plus className="w-5 h-5" />
+              Set First Budget
+            </button>
+          </div>
+        ) : (
+          budgets.map((budget) => {
+            const spent = getCategorySpending(budget.category);
+            const percent = Math.min((spent / budget.amount) * 100, 100);
+            const isOver = spent > budget.amount;
+
+            return (
+              <motion.div
+                layout
+                key={budget.id}
+                className={`${cardBg} p-6 rounded-3xl border ${borderCol} shadow-sm space-y-4`}
+              >
+                <div className="flex justify-between items-start">
+                  <div>
+                    <h3 className={`text-lg font-bold ${boldTextColor}`}>{budget.category}</h3>
+                    <p className={`text-sm ${mutedText}`}>Limit: ₹{budget.amount.toLocaleString()}</p>
+                  </div>
+                  <button
+                    onClick={() => deleteBudget(budget.id)}
+                    className="p-2 text-stone-400 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all"
+                  >
+                    <Trash2 className="w-5 h-5" />
+                  </button>
+                </div>
+
+                <div className="space-y-2">
+                  <div className="flex justify-between text-sm font-bold">
+                    <span className={isOver ? 'text-red-500' : 'text-emerald-500'}>
+                      Spent: ₹{spent.toLocaleString()}
+                    </span>
+                    <span className={mutedText}>{Math.round(percent)}%</span>
+                  </div>
+                  <div className="h-3 bg-stone-100 rounded-full overflow-hidden">
+                    <motion.div
+                      initial={{ width: 0 }}
+                      animate={{ width: `${percent}%` }}
+                      className={`h-full transition-colors ${
+                        percent > 90 ? 'bg-red-500' :
+                        percent > 70 ? 'bg-orange-500' :
+                        'bg-emerald-500'
+                      }`}
+                    />
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-2 pt-2">
+                  {isOver ? (
+                    <div className="flex items-center gap-1.5 text-xs font-bold text-red-500 bg-red-50 px-3 py-1.5 rounded-full">
+                      <AlertCircle className="w-3.5 h-3.5" />
+                      Over budget by ₹{(spent - budget.amount).toLocaleString()}
+                    </div>
+                  ) : (
+                    <div className="flex items-center gap-1.5 text-xs font-bold text-emerald-600 bg-emerald-50 px-3 py-1.5 rounded-full">
+                      <CheckCircle2 className="w-3.5 h-3.5" />
+                      ₹{(budget.amount - spent).toLocaleString()} remaining
+                    </div>
+                  )}
+                </div>
+              </motion.div>
+            );
+          })
+        )}
+      </div>
+
+      <AnimatePresence>
+        {showAddModal && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.9 }}
+              className={`${cardBg} w-full max-w-md rounded-3xl p-8 shadow-2xl border ${borderCol}`}
+            >
+              <h3 className={`text-2xl font-bold mb-6 ${boldTextColor}`}>Set Category Budget</h3>
+              <form onSubmit={handleAddBudget} className="space-y-4">
+                <div>
+                  <label className={`block text-sm font-bold mb-2 ${mutedText}`}>CATEGORY</label>
+                  <select
+                    className={`w-full px-4 py-3 rounded-xl border ${borderCol} ${isPink ? 'bg-stone-50' : 'bg-stone-800'} focus:ring-2 focus:ring-emerald-500 outline-none ${textColor}`}
+                    value={newBudget.category}
+                    onChange={(e) => setNewBudget({ ...newBudget, category: e.target.value })}
+                  >
+                    {categories.map(c => <option key={c} value={c}>{c}</option>)}
+                  </select>
+                </div>
+                <div>
+                  <label className={`block text-sm font-bold mb-2 ${mutedText}`}>MONTHLY LIMIT (₹)</label>
+                  <input
+                    required
+                    type="number"
+                    className={`w-full px-4 py-3 rounded-xl border ${borderCol} ${isPink ? 'bg-stone-50' : 'bg-stone-800'} focus:ring-2 focus:ring-emerald-500 outline-none ${textColor}`}
+                    placeholder="e.g. 5000"
+                    value={newBudget.amount}
+                    onChange={(e) => setNewBudget({ ...newBudget, amount: e.target.value })}
+                  />
+                </div>
+                <div className="flex gap-4 pt-4">
+                  <button
+                    type="button"
+                    onClick={() => setShowAddModal(false)}
+                    className={`flex-1 py-4 rounded-xl font-bold ${isPink ? 'bg-stone-100 text-stone-600' : 'bg-white/5 text-stone-400'} hover:opacity-80 transition-all`}
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    className={`flex-1 py-4 ${primaryColor} text-white rounded-xl font-bold hover:opacity-90 transition-all shadow-lg`}
+                  >
+                    Save Budget
+                  </button>
+                </div>
+              </form>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+}
