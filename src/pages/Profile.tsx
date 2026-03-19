@@ -13,11 +13,14 @@ export default function Profile({ user }: { user: any }) {
   const [editData, setEditData] = useState({ name: user.name, mobile: user.mobile || '' });
 
   const isPink = user?.gender === 'Female';
-  const cardBg = isPink ? 'bg-white' : 'bg-stone-900';
-  const borderCol = isPink ? 'border-stone-200' : 'border-white/10';
-  const textColor = isPink ? 'text-black' : 'text-white';
-  const mutedText = isPink ? 'text-stone-600' : 'text-stone-400';
-  const boldTextColor = isPink ? 'text-black' : 'text-white';
+  const isWhite = user?.theme === 'white';
+  const primaryColor = isWhite ? 'bg-black' : (isPink ? 'bg-[#FF8DA1]' : 'bg-white');
+  const primaryText = isWhite ? 'text-white' : (isPink ? 'text-white' : 'text-black');
+  const cardBg = isWhite ? 'bg-white' : (isPink ? 'bg-[#3D171C]' : 'bg-black');
+  const borderCol = isWhite ? 'border-stone-300' : (isPink ? 'border-white/5' : 'border-white/10');
+  const textColor = isWhite ? 'text-black font-bold' : 'text-white';
+  const mutedText = isWhite ? 'text-black font-bold' : 'text-white/60';
+  const boldTextColor = isWhite ? 'text-black font-bold' : 'text-white';
 
   const copyToClipboard = () => {
     navigator.clipboard.writeText(user.partnerCode);
@@ -49,9 +52,13 @@ export default function Profile({ user }: { user: any }) {
     }
   };
 
-  const handleUpdateGender = async (gender: string) => {
+  const handleUpdateTheme = async (theme: string) => {
     try {
-      await updateDoc(doc(db, 'users', user.uid), { gender });
+      if (theme === 'white') {
+        await updateDoc(doc(db, 'users', user.uid), { theme: 'white', gender: 'Male' });
+      } else {
+        await updateDoc(doc(db, 'users', user.uid), { theme: 'dark', gender: theme });
+      }
     } catch (err) {
       console.error(err);
     }
@@ -84,34 +91,51 @@ export default function Profile({ user }: { user: any }) {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
         <div className="md:col-span-1 space-y-6">
           <div className={`${cardBg} p-8 rounded-3xl shadow-sm border ${borderCol} text-center`}>
-            <div className={`w-24 h-24 ${isPink ? 'bg-emerald-100 text-emerald-700' : 'bg-emerald-500/20 text-emerald-400'} rounded-full flex items-center justify-center text-3xl font-bold mx-auto mb-4`}>
+            <div className={`w-24 h-24 ${isPink ? 'bg-[#FF8DA1]/20 text-[#FF8DA1]' : 'bg-emerald-500/20 text-emerald-400'} rounded-full flex items-center justify-center text-3xl font-bold mx-auto mb-4`}>
               {user.name[0]}
             </div>
             <h3 className={`text-xl font-bold ${boldTextColor}`}>{user.name}</h3>
             <p className={`${mutedText} text-sm`}>{user.email}</p>
             
             <div className="mt-6 space-y-2">
-              <p className="text-xs font-bold text-stone-400 uppercase">Theme Preference</p>
+              <p className="text-xs font-bold text-white/40 uppercase">Theme Preference</p>
               <div className="flex gap-2 justify-center">
-                {['Male', 'Female'].map((g) => (
-                  <button
-                    key={g}
-                    onClick={() => handleUpdateGender(g)}
-                    className={`px-3 py-1 rounded-full text-xs font-bold border transition-all ${
-                      user.gender === g
-                        ? 'bg-emerald-600 text-white border-emerald-600'
-                        : isPink ? 'bg-stone-50 text-black border-stone-200 hover:bg-stone-100' : 'bg-white/5 text-stone-400 border-white/10 hover:bg-white/10'
-                    }`}
-                  >
-                    {g === 'Male' ? 'Black' : 'Pink'}
-                  </button>
-                ))}
+                <button
+                  onClick={() => handleUpdateTheme('Male')}
+                  className={`px-3 py-1 rounded-full text-xs font-bold border transition-all ${
+                    user.theme !== 'white' && user.gender === 'Male'
+                      ? 'bg-emerald-600 text-white border-emerald-600'
+                      : isWhite ? 'bg-stone-100 text-black font-bold border-stone-200 hover:bg-stone-200' : 'bg-white/5 text-stone-400 border-white/10 hover:bg-white/10'
+                  }`}
+                >
+                  Black
+                </button>
+                <button
+                  onClick={() => handleUpdateTheme('Female')}
+                  className={`px-3 py-1 rounded-full text-xs font-bold border transition-all ${
+                    user.theme !== 'white' && user.gender === 'Female'
+                      ? 'bg-emerald-600 text-white border-emerald-600'
+                      : isWhite ? 'bg-stone-100 text-black font-bold border-stone-200 hover:bg-stone-200' : 'bg-white/5 text-stone-400 border-white/10 hover:bg-white/10'
+                  }`}
+                >
+                  Pink
+                </button>
+                <button
+                  onClick={() => handleUpdateTheme('white')}
+                  className={`px-3 py-1 rounded-full text-xs font-bold border transition-all ${
+                    user.theme === 'white'
+                      ? 'bg-emerald-600 text-white border-emerald-600'
+                      : isWhite ? 'bg-stone-100 text-black font-bold border-stone-200 hover:bg-stone-200' : 'bg-white/5 text-stone-400 border-white/10 hover:bg-white/10'
+                  }`}
+                >
+                  White
+                </button>
               </div>
             </div>
 
             <button 
               onClick={() => setIsEditing(true)}
-              className="mt-6 text-emerald-600 text-sm font-bold hover:underline"
+              className="mt-6 text-emerald-500 text-sm font-bold hover:underline"
             >
               Edit Profile
             </button>
@@ -152,7 +176,7 @@ export default function Profile({ user }: { user: any }) {
                       <button
                         type="button"
                         onClick={() => setIsEditing(false)}
-                        className={`flex-1 px-6 py-3 rounded-xl font-bold ${isPink ? 'bg-stone-100 text-stone-600' : 'bg-white/5 text-stone-400'} hover:opacity-80 transition-all`}
+                        className={`flex-1 px-6 py-3 rounded-xl font-bold ${isPink ? 'bg-white/5 text-white/60' : `bg-white/5 ${mutedText}`} hover:opacity-80 transition-all`}
                       >
                         Cancel
                       </button>
@@ -194,26 +218,26 @@ export default function Profile({ user }: { user: any }) {
             </h3>
 
             {user.partnerId ? (
-              <div className="p-6 bg-emerald-50 rounded-2xl border border-emerald-100 flex items-center gap-4">
+              <div className="p-6 bg-emerald-500/10 rounded-2xl border border-emerald-500/20 flex items-center gap-4">
                 <div className="w-12 h-12 bg-emerald-600 rounded-full flex items-center justify-center text-white">
                   <Check className="w-6 h-6" />
                 </div>
                 <div>
-                  <p className="font-bold text-emerald-900">Connected with Partner</p>
-                  <p className="text-sm text-emerald-700">You are now sharing expenses and chat.</p>
+                  <p className="font-bold text-emerald-400">Connected with Partner</p>
+                  <p className="text-sm text-emerald-400/80">You are now sharing expenses and chat.</p>
                 </div>
               </div>
             ) : (
               <div className="space-y-8">
-                <div className={`p-6 ${isPink ? 'bg-stone-50' : 'bg-white/5'} rounded-2xl border ${borderCol}`}>
-                  <p className="text-sm font-bold text-stone-400 uppercase mb-4">Your Partner Code</p>
+                <div className={`p-6 ${isPink ? 'bg-white/5' : 'bg-white/5'} rounded-2xl border ${borderCol}`}>
+                  <p className="text-sm font-bold opacity-40 uppercase mb-4">Your Partner Code</p>
                   <div className="flex items-center gap-4">
-                    <div className={`flex-1 ${isPink ? 'bg-white' : 'bg-stone-800'} px-6 py-4 rounded-xl border-2 border-dashed ${isPink ? 'border-stone-300' : 'border-white/20'} text-2xl font-mono font-bold tracking-widest text-center ${boldTextColor}`}>
+                    <div className={`flex-1 ${isPink ? 'bg-white/5' : (isWhite ? 'bg-stone-50' : 'bg-stone-800')} px-6 py-4 rounded-xl border-2 border-dashed ${isPink ? 'border-white/20' : 'border-white/20'} text-2xl font-mono font-bold tracking-widest text-center ${boldTextColor}`}>
                       {user.partnerCode}
                     </div>
                     <button
                       onClick={copyToClipboard}
-                      className={`p-4 ${isPink ? 'bg-white border-stone-200 hover:bg-stone-50' : 'bg-white/5 border-white/10 hover:bg-white/10'} border rounded-xl transition-all ${mutedText}`}
+                      className={`p-4 ${isPink ? 'bg-white/5 border-white/10 hover:bg-white/10' : (isWhite ? 'bg-stone-50 border-stone-200 hover:bg-stone-100' : 'bg-white/5 border-white/10 hover:bg-white/10')} border rounded-xl transition-all ${mutedText}`}
                     >
                       {copied ? <Check className="w-6 h-6 text-emerald-600" /> : <Copy className="w-6 h-6" />}
                     </button>
@@ -233,15 +257,15 @@ export default function Profile({ user }: { user: any }) {
                 <form onSubmit={handleLinkPartner} className="space-y-4">
                   <div className="flex items-center gap-2 mb-2">
                     <LinkIcon className="w-4 h-4 text-emerald-600" />
-                    <p className="text-sm font-bold text-stone-400 uppercase">Link by Code</p>
+                    <p className="text-sm font-bold opacity-40 uppercase">Link by Code</p>
                   </div>
                   <div className="flex flex-col sm:flex-row gap-4">
                     <div className="relative flex-1">
-                      <Smartphone className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-stone-400" />
+                      <Smartphone className={`absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 ${isWhite ? 'text-black' : 'text-white/40'}`} />
                       <input
                         type="text"
                         placeholder="ENTER CODE"
-                        className={`w-full pl-12 pr-6 py-4 ${isPink ? 'bg-stone-50 border-stone-200' : 'bg-white/5 border-white/10'} border rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none font-mono font-bold text-xl uppercase ${boldTextColor}`}
+                        className={`w-full pl-12 pr-6 py-4 ${isPink ? 'bg-white/5 border-white/10' : 'bg-white/5 border-white/10'} border rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none font-mono font-bold text-xl uppercase ${boldTextColor}`}
                         value={partnerCode}
                         onChange={(e) => setPartnerCode(e.target.value.toUpperCase())}
                       />
@@ -249,7 +273,7 @@ export default function Profile({ user }: { user: any }) {
                     <button
                       type="submit"
                       disabled={loading || !partnerCode}
-                      className="px-8 py-4 bg-emerald-600 text-white rounded-xl font-bold hover:bg-emerald-700 transition-all disabled:opacity-50 shadow-lg shadow-emerald-600/20"
+                      className={`px-8 py-4 ${primaryColor} ${primaryText} rounded-xl font-bold hover:opacity-90 transition-all disabled:opacity-50 shadow-lg shadow-emerald-600/20`}
                     >
                       {loading ? 'Linking...' : 'Connect Now'}
                     </button>
@@ -267,19 +291,19 @@ export default function Profile({ user }: { user: any }) {
           <div className={`${cardBg} p-8 rounded-3xl shadow-sm border ${borderCol}`}>
             <h3 className={`text-lg font-bold mb-6 ${boldTextColor}`}>Account Security</h3>
             <div className="space-y-4">
-              <button className={`w-full text-left px-6 py-4 rounded-2xl border ${borderCol} ${isPink ? 'hover:bg-stone-50' : 'hover:bg-white/5'} transition-all flex justify-between items-center`}>
+              <button className={`w-full text-left px-6 py-4 rounded-2xl border ${borderCol} hover:bg-white/5 transition-all flex justify-between items-center`}>
                 <div>
                   <p className={`font-bold ${boldTextColor}`}>Change Password</p>
                   <p className={`text-sm ${mutedText}`}>Update your account password</p>
                 </div>
-                <Check className={`w-5 h-5 ${isPink ? 'text-stone-300' : 'text-stone-600'}`} />
+                <Check className={`w-5 h-5 ${isPink ? 'text-white/20' : (isWhite ? 'text-black' : 'text-stone-600')}`} />
               </button>
-              <button className={`w-full text-left px-6 py-4 rounded-2xl border ${borderCol} ${isPink ? 'hover:bg-stone-50' : 'hover:bg-white/5'} transition-all flex justify-between items-center`}>
+              <button className={`w-full text-left px-6 py-4 rounded-2xl border ${borderCol} hover:bg-white/5 transition-all flex justify-between items-center`}>
                 <div>
                   <p className={`font-bold ${boldTextColor}`}>Two-Factor Authentication</p>
                   <p className={`text-sm ${mutedText}`}>Add an extra layer of security</p>
                 </div>
-                <div className={`w-12 h-6 ${isPink ? 'bg-stone-200' : 'bg-white/10'} rounded-full relative`}>
+                <div className={`w-12 h-6 ${isPink ? 'bg-white/10' : 'bg-white/10'} rounded-full relative`}>
                   <div className="absolute left-1 top-1 w-4 h-4 bg-white rounded-full shadow-sm"></div>
                 </div>
               </button>

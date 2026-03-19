@@ -16,12 +16,14 @@ export default function Budgets({ user }: { user: any }) {
   });
 
   const isPink = user?.gender === 'Female';
-  const primaryColor = isPink ? 'bg-[#FF8DA1]' : 'bg-black';
-  const cardBg = isPink ? 'bg-white' : 'bg-stone-900';
-  const borderCol = isPink ? 'border-stone-200' : 'border-white/10';
-  const textColor = isPink ? 'text-black' : 'text-white';
-  const mutedText = isPink ? 'text-stone-600' : 'text-stone-400';
-  const boldTextColor = isPink ? 'text-black' : 'text-white';
+  const isWhite = user?.theme === 'white';
+  const primaryColor = isWhite ? 'bg-black' : (isPink ? 'bg-[#FF8DA1]' : 'bg-white');
+  const primaryText = isWhite ? 'text-white' : (isPink ? 'text-white' : 'text-black');
+  const cardBg = isWhite ? 'bg-white' : (isPink ? 'bg-[#3D171C]' : 'bg-black');
+  const borderCol = isWhite ? 'border-stone-300' : (isPink ? 'border-white/5' : 'border-white/10');
+  const textColor = isWhite ? 'text-black font-bold' : 'text-white';
+  const mutedText = isWhite ? 'text-black font-bold' : 'text-white/60';
+  const boldTextColor = isWhite ? 'text-black font-bold' : 'text-white';
 
   const categories = [
     'Food & Dining', 'Shopping', 'Transportation', 'Entertainment',
@@ -115,7 +117,7 @@ export default function Budgets({ user }: { user: any }) {
           <div className={`flex items-center gap-2 ${cardBg} p-1 rounded-xl border ${borderCol}`}>
             <button
               onClick={() => setCurrentMonth(subMonths(currentMonth, 1))}
-              className={`p-2 hover:bg-stone-100 rounded-lg transition-all ${mutedText}`}
+              className={`p-2 hover:bg-white/10 rounded-lg transition-all ${mutedText}`}
             >
               <ChevronLeft className="w-5 h-5" />
             </button>
@@ -124,14 +126,14 @@ export default function Budgets({ user }: { user: any }) {
             </span>
             <button
               onClick={() => setCurrentMonth(addMonths(currentMonth, 1))}
-              className={`p-2 hover:bg-stone-100 rounded-lg transition-all ${mutedText}`}
+              className={`p-2 hover:bg-white/10 rounded-lg transition-all ${mutedText}`}
             >
               <ChevronRight className="w-5 h-5" />
             </button>
           </div>
           <button
             onClick={() => setShowAddModal(true)}
-            className={`flex items-center gap-2 px-6 py-3 ${primaryColor} text-white rounded-2xl font-bold hover:opacity-90 transition-all shadow-lg`}
+            className={`flex items-center gap-2 px-6 py-3 ${primaryColor} ${primaryText} rounded-2xl font-bold hover:opacity-90 transition-all shadow-lg`}
           >
             <Plus className="w-5 h-5" />
             Set Budget
@@ -159,7 +161,7 @@ export default function Budgets({ user }: { user: any }) {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {budgets.length === 0 ? (
           <div className={`${cardBg} col-span-full p-12 rounded-3xl border ${borderCol} text-center space-y-4`}>
-            <Target className="w-16 h-16 text-stone-200 mx-auto" />
+            <Target className="w-16 h-16 text-white/20 mx-auto" />
             <h3 className={`text-xl font-bold ${boldTextColor}`}>No budgets set for this month</h3>
             <p className={mutedText}>Start by setting a spending limit for a category.</p>
             <button
@@ -189,7 +191,7 @@ export default function Budgets({ user }: { user: any }) {
                   </div>
                   <button
                     onClick={() => deleteBudget(budget.id)}
-                    className="p-2 text-stone-400 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all"
+                    className={`p-2 ${mutedText} hover:text-red-500 hover:bg-red-500/10 rounded-xl transition-all`}
                   >
                     <Trash2 className="w-5 h-5" />
                   </button>
@@ -202,7 +204,7 @@ export default function Budgets({ user }: { user: any }) {
                     </span>
                     <span className={mutedText}>{Math.round(percent)}%</span>
                   </div>
-                  <div className="h-3 bg-stone-100 rounded-full overflow-hidden">
+                  <div className="h-3 bg-white/5 rounded-full overflow-hidden">
                     <motion.div
                       initial={{ width: 0 }}
                       animate={{ width: `${percent}%` }}
@@ -217,12 +219,12 @@ export default function Budgets({ user }: { user: any }) {
 
                 <div className="flex items-center gap-2 pt-2">
                   {isOver ? (
-                    <div className="flex items-center gap-1.5 text-xs font-bold text-red-500 bg-red-50 px-3 py-1.5 rounded-full">
+                    <div className="flex items-center gap-1.5 text-xs font-bold text-red-500 bg-red-500/10 px-3 py-1.5 rounded-full">
                       <AlertCircle className="w-3.5 h-3.5" />
                       Over budget by ₹{(spent - budget.amount).toLocaleString()}
                     </div>
                   ) : (
-                    <div className="flex items-center gap-1.5 text-xs font-bold text-emerald-600 bg-emerald-50 px-3 py-1.5 rounded-full">
+                    <div className="flex items-center gap-1.5 text-xs font-bold text-emerald-400 bg-emerald-500/10 px-3 py-1.5 rounded-full">
                       <CheckCircle2 className="w-3.5 h-3.5" />
                       ₹{(budget.amount - spent).toLocaleString()} remaining
                     </div>
@@ -252,7 +254,7 @@ export default function Budgets({ user }: { user: any }) {
                     value={newBudget.category}
                     onChange={(e) => setNewBudget({ ...newBudget, category: e.target.value })}
                   >
-                    {categories.map(c => <option key={c} value={c}>{c}</option>)}
+                    {categories.map(c => <option key={c} value={c} className={`${cardBg} ${textColor}`}>{c}</option>)}
                   </select>
                 </div>
                 <div>
@@ -270,7 +272,7 @@ export default function Budgets({ user }: { user: any }) {
                   <button
                     type="button"
                     onClick={() => setShowAddModal(false)}
-                    className={`flex-1 py-4 rounded-xl font-bold ${isPink ? 'bg-stone-100 text-stone-600' : 'bg-white/5 text-stone-400'} hover:opacity-80 transition-all`}
+                    className={`flex-1 py-4 rounded-xl font-bold ${isPink ? 'bg-white/5 text-white/60' : 'bg-white/5 text-stone-400'} hover:opacity-80 transition-all`}
                   >
                     Cancel
                   </button>

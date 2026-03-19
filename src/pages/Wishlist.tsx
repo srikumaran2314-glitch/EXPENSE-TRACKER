@@ -17,13 +17,14 @@ export default function Wishlist({ user }: { user: any }) {
   });
 
   const isPink = user?.gender === 'Female';
-  const primaryColor = isPink ? 'bg-[#FF8DA1]' : 'bg-black';
-  const primaryText = isPink ? 'text-[#FF8DA1]' : 'text-black';
-  const cardBg = isPink ? 'bg-white' : 'bg-stone-900';
-  const borderCol = isPink ? 'border-stone-200' : 'border-white/10';
-  const textColor = isPink ? 'text-black' : 'text-white';
-  const mutedText = isPink ? 'text-stone-600' : 'text-stone-400';
-  const boldTextColor = isPink ? 'text-black' : 'text-white';
+  const isWhite = user?.theme === 'white';
+  const primaryColor = isWhite ? 'bg-black' : (isPink ? 'bg-[#FF8DA1]' : 'bg-white');
+  const primaryText = isWhite ? 'text-white' : (isPink ? 'text-white' : 'text-black');
+  const cardBg = isWhite ? 'bg-white' : (isPink ? 'bg-[#3D171C]' : 'bg-black');
+  const borderCol = isWhite ? 'border-stone-300' : (isPink ? 'border-white/5' : 'border-white/10');
+  const textColor = isWhite ? 'text-black font-bold' : 'text-white';
+  const mutedText = isWhite ? 'text-black font-bold' : 'text-white/60';
+  const boldTextColor = isWhite ? 'text-black font-bold' : 'text-white';
 
   useEffect(() => {
     if (!user) return;
@@ -123,7 +124,7 @@ export default function Wishlist({ user }: { user: any }) {
         </div>
         <button
           onClick={() => setShowAddModal(true)}
-          className={`flex items-center gap-2 px-6 py-3 ${primaryColor} text-white rounded-2xl font-bold hover:opacity-90 transition-all shadow-lg`}
+          className={`flex items-center gap-2 px-6 py-3 ${primaryColor} ${primaryText} rounded-2xl font-bold hover:opacity-90 transition-all shadow-lg`}
         >
           <Plus className="w-5 h-5" />
           Add Item
@@ -150,14 +151,14 @@ export default function Wishlist({ user }: { user: any }) {
                 <div>
                   <div className="flex items-center gap-2">
                     <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase ${
-                      item.priority === 'High' ? 'bg-red-100 text-red-600' :
-                      item.priority === 'Medium' ? 'bg-orange-100 text-orange-600' :
-                      'bg-blue-100 text-blue-600'
+                      item.priority === 'High' ? 'bg-red-500/10 text-red-500' :
+                      item.priority === 'Medium' ? 'bg-orange-500/10 text-orange-500' :
+                      'bg-blue-500/10 text-blue-500'
                     }`}>
                       {item.priority}
                     </span>
                     {item.isCompleted && (
-                      <span className="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase bg-emerald-100 text-emerald-600">
+                      <span className="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase bg-emerald-500/10 text-emerald-400">
                         Achieved
                       </span>
                     )}
@@ -168,7 +169,7 @@ export default function Wishlist({ user }: { user: any }) {
                 </div>
                 <button
                   onClick={() => toggleComplete(item)}
-                  className={`p-2 rounded-xl transition-all ${item.isCompleted ? 'text-emerald-500 bg-emerald-50' : 'text-stone-400 hover:bg-stone-100'}`}
+                  className={`p-2 rounded-xl transition-all ${item.isCompleted ? 'text-emerald-500 bg-emerald-500/10' : `${mutedText} hover:bg-white/10`}`}
                 >
                   {item.isCompleted ? <CheckCircle className="w-6 h-6" /> : <Circle className="w-6 h-6" />}
                 </button>
@@ -185,7 +186,7 @@ export default function Wishlist({ user }: { user: any }) {
                     ₹{item.savedAmount.toLocaleString()} / ₹{item.estimatedAmount.toLocaleString()}
                   </span>
                 </div>
-                <div className="h-2 bg-stone-100 rounded-full overflow-hidden">
+                <div className="h-2 bg-white/5 rounded-full overflow-hidden">
                   <motion.div
                     initial={{ width: 0 }}
                     animate={{ width: `${Math.min((item.savedAmount / item.estimatedAmount) * 100, 100)}%` }}
@@ -194,12 +195,12 @@ export default function Wishlist({ user }: { user: any }) {
                 </div>
               </div>
 
-              <div className="flex items-center justify-between pt-4 border-t border-stone-100">
+              <div className="flex items-center justify-between pt-4 border-t border-white/5">
                 <div className="flex items-center gap-2">
                   <input
                     type="number"
                     placeholder="Add savings"
-                    className={`w-24 px-3 py-1.5 text-sm rounded-lg border ${borderCol} ${isPink ? 'bg-stone-50' : 'bg-stone-800'} focus:ring-2 focus:ring-emerald-500 outline-none ${textColor}`}
+                    className={`w-24 px-3 py-1.5 text-sm rounded-lg border ${borderCol} ${isPink ? 'bg-white/5' : 'bg-stone-800'} focus:ring-2 focus:ring-emerald-500 outline-none ${textColor}`}
                     onKeyDown={(e: any) => {
                       if (e.key === 'Enter') {
                         const val = parseFloat(e.target.value);
@@ -213,7 +214,7 @@ export default function Wishlist({ user }: { user: any }) {
                 </div>
                 <button
                   onClick={() => deleteItem(item.id)}
-                  className="p-2 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-xl transition-all opacity-0 group-hover:opacity-100"
+                  className="p-2 text-red-400 hover:text-red-600 hover:bg-red-500/10 rounded-xl transition-all opacity-0 group-hover:opacity-100"
                 >
                   <Trash2 className="w-5 h-5" />
                 </button>
@@ -245,7 +246,7 @@ export default function Wishlist({ user }: { user: any }) {
                   <input
                     required
                     type="text"
-                    className={`w-full px-4 py-3 rounded-xl border ${borderCol} ${isPink ? 'bg-stone-50' : 'bg-stone-800'} focus:ring-2 focus:ring-emerald-500 outline-none ${textColor}`}
+                    className={`w-full px-4 py-3 rounded-xl border ${borderCol} ${isPink ? 'bg-white/5' : 'bg-stone-800'} focus:ring-2 focus:ring-emerald-500 outline-none ${textColor}`}
                     value={newItem.title}
                     onChange={(e) => setNewItem({ ...newItem, title: e.target.value })}
                   />
@@ -254,7 +255,7 @@ export default function Wishlist({ user }: { user: any }) {
                 <div>
                   <label className={`block text-sm font-bold mb-2 ${mutedText}`}>DESCRIPTION (OPTIONAL)</label>
                   <textarea
-                    className={`w-full px-4 py-3 rounded-xl border ${borderCol} ${isPink ? 'bg-stone-50' : 'bg-stone-800'} focus:ring-2 focus:ring-emerald-500 outline-none ${textColor}`}
+                    className={`w-full px-4 py-3 rounded-xl border ${borderCol} ${isPink ? 'bg-white/5' : 'bg-stone-800'} focus:ring-2 focus:ring-emerald-500 outline-none ${textColor}`}
                     rows={2}
                     value={newItem.description}
                     onChange={(e) => setNewItem({ ...newItem, description: e.target.value })}
@@ -267,7 +268,7 @@ export default function Wishlist({ user }: { user: any }) {
                     <input
                       required
                       type="number"
-                      className={`w-full px-4 py-3 rounded-xl border ${borderCol} ${isPink ? 'bg-stone-50' : 'bg-stone-800'} focus:ring-2 focus:ring-emerald-500 outline-none ${textColor}`}
+                      className={`w-full px-4 py-3 rounded-xl border ${borderCol} ${isPink ? 'bg-white/5' : 'bg-stone-800'} focus:ring-2 focus:ring-emerald-500 outline-none ${textColor}`}
                       value={newItem.estimatedAmount}
                       onChange={(e) => setNewItem({ ...newItem, estimatedAmount: e.target.value })}
                     />
@@ -275,7 +276,7 @@ export default function Wishlist({ user }: { user: any }) {
                   <div>
                     <label className={`block text-sm font-bold mb-2 ${mutedText}`}>PRIORITY</label>
                     <select
-                      className={`w-full px-4 py-3 rounded-xl border ${borderCol} ${isPink ? 'bg-stone-50' : 'bg-stone-800'} focus:ring-2 focus:ring-emerald-500 outline-none ${textColor}`}
+                      className={`w-full px-4 py-3 rounded-xl border ${borderCol} ${isPink ? 'bg-white/5' : 'bg-stone-800'} focus:ring-2 focus:ring-emerald-500 outline-none ${textColor}`}
                       value={newItem.priority}
                       onChange={(e) => setNewItem({ ...newItem, priority: e.target.value })}
                     >
@@ -289,13 +290,13 @@ export default function Wishlist({ user }: { user: any }) {
                 <div>
                   <label className={`block text-sm font-bold mb-2 ${mutedText}`}>IMAGE (OPTIONAL)</label>
                   <div className="flex items-center gap-4">
-                    <label className={`flex-1 flex items-center justify-center gap-2 px-4 py-3 border-2 border-dashed ${borderCol} rounded-xl cursor-pointer hover:bg-stone-50 transition-all ${mutedText}`}>
+                    <label className={`flex-1 flex items-center justify-center gap-2 px-4 py-3 border-2 border-dashed ${borderCol} rounded-xl cursor-pointer hover:bg-white/5 transition-all ${mutedText}`}>
                       <ImageIcon className="w-5 h-5" />
                       <span>{newItem.imageUrl ? 'Change Image' : 'Upload Image'}</span>
                       <input type="file" accept="image/*" className="hidden" onChange={handleImageUpload} />
                     </label>
                     {newItem.imageUrl && (
-                      <div className="w-12 h-12 rounded-lg overflow-hidden border border-stone-200">
+                      <div className="w-12 h-12 rounded-lg overflow-hidden border border-white/10">
                         <img src={newItem.imageUrl} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
                       </div>
                     )}

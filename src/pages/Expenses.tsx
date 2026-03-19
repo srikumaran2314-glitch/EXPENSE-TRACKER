@@ -31,7 +31,12 @@ import autoTable from 'jspdf-autotable';
 import { deleteDoc, doc, updateDoc } from 'firebase/firestore';
 import ConfirmDialog from '../components/ConfirmDialog';
 
-const CATEGORIES = ['Food', 'Travel', 'Shopping', 'Rent', 'Bills', 'Personal', 'Other'];
+const CATEGORIES = [
+  'Food', 'Groceries', 'Travel', 'Shopping', 'Rent', 'Bills', 'Personal', 
+  'Health', 'Entertainment', 'Education', 'Investment', 'Gift', 
+  'Maintenance', 'Subscription', 'Insurance', 'Tax', 'Fuel', 'Parking', 
+  'Beauty', 'Electronics', 'Home Decor', 'Gifts', 'Pets', 'Charity', 'Work', 'Auto', 'Clothing', 'Other'
+];
 const MODES = ['Cash', 'UPI', 'Card', 'Bank Transfer', 'Other'];
 
 export default function Expenses({ user, partner }: { user: any, partner: any }) {
@@ -54,23 +59,27 @@ export default function Expenses({ user, partner }: { user: any, partner: any })
   const [isBulkDeleting, setIsBulkDeleting] = useState(false);
 
   const isPink = user?.gender === 'Female';
-  const primaryColor = isPink ? 'bg-[#FF8DA1]' : 'bg-white';
-  const primaryHover = isPink ? 'hover:bg-[#FF7A91]' : 'hover:bg-stone-200';
-  const primaryRing = isPink ? 'focus:ring-[#FF8DA1]' : 'focus:ring-white/50';
-  const primaryShadow = isPink ? 'shadow-[#FF8DA1]/20' : 'shadow-white/10';
-  const primaryBadge = isPink ? 'bg-[#FFF0F3] text-[#FF8DA1]' : 'bg-white/10 text-white';
-  const primaryText = isPink ? 'text-[#FF8DA1]' : 'text-white';
-  const cardBg = isPink ? 'bg-white' : 'bg-stone-900';
-  const borderCol = isPink ? 'border-stone-200' : 'border-white/10';
-  const textColor = isPink ? 'text-black' : 'text-white';
-  const mutedText = isPink ? 'text-stone-600' : 'text-stone-400';
-  const boldTextColor = isPink ? 'text-black' : 'text-white';
+  const isWhite = user?.theme === 'white';
+  const primaryColor = isWhite ? 'bg-black' : (isPink ? 'bg-[#FF8DA1]' : 'bg-stone-800');
+  const primaryHover = isWhite ? 'hover:bg-stone-900' : (isPink ? 'hover:bg-[#FF7A91]' : 'hover:bg-stone-700');
+  const primaryRing = isWhite ? 'focus:ring-black' : (isPink ? 'focus:ring-[#FF8DA1]' : 'focus:ring-white/50');
+  const primaryShadow = isWhite ? 'shadow-stone-200' : (isPink ? 'shadow-[#FF8DA1]/20' : 'shadow-white/10');
+  const primaryBadge = isWhite ? 'bg-stone-100 text-black font-bold' : (isPink ? 'bg-[#FF8DA1]/20 text-white' : 'bg-white/10 text-white');
+  const primaryText = isWhite ? 'text-white' : 'text-white';
+  const cardBg = isWhite ? 'bg-white' : (isPink ? 'bg-[#3D171C]' : 'bg-black');
+  const borderCol = isWhite ? 'border-stone-300' : (isPink ? 'border-white/5' : 'border-white/10');
+  const textColor = isWhite ? 'text-black font-bold' : 'text-white';
+  const mutedText = isWhite ? 'text-black font-bold' : 'text-white/60';
+  const boldTextColor = isWhite ? 'text-black font-bold' : 'text-white';
+  const [isDragging, setIsDragging] = useState(false);
 
   const [formData, setFormData] = useState({
     amount: '',
     paidBy: user.name,
     paymentMode: 'UPI',
     category: 'Food',
+    mealType: '',
+    isSplit: true,
     paidTo: '',
     location: '',
     description: '',
@@ -112,6 +121,8 @@ export default function Expenses({ user, partner }: { user: any, partner: any })
         paidBy: editingExpense.paidBy || editingExpense.paid_by || user.name,
         paymentMode: editingExpense.paymentMode || editingExpense.payment_mode || 'UPI',
         category: editingExpense.category,
+        mealType: editingExpense.mealType || '',
+        isSplit: editingExpense.isSplit !== undefined ? editingExpense.isSplit : true,
         paidTo: editingExpense.paidTo || editingExpense.paid_to || '',
         location: editingExpense.location || '',
         description: editingExpense.description || '',
@@ -131,6 +142,8 @@ export default function Expenses({ user, partner }: { user: any, partner: any })
       paidBy: user.name,
       paymentMode: 'UPI',
       category: 'Food',
+      mealType: '',
+      isSplit: true,
       paidTo: '',
       location: '',
       description: '',
@@ -143,8 +156,8 @@ export default function Expenses({ user, partner }: { user: any, partner: any })
     setEditingExpense(null);
   };
 
-  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement> | File) => {
+    const file = e instanceof File ? e : e.target.files?.[0];
     if (!file) return;
 
     if (file.size > 1024 * 1024) {
@@ -164,15 +177,46 @@ export default function Expenses({ user, partner }: { user: any, partner: any })
     reader.readAsDataURL(file);
   };
 
+  const onDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(true);
+  };
+
+  const onDragLeave = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+  };
+
+  const onDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+    const file = e.dataTransfer.files[0];
+    if (file) handleFileUpload(file);
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
+    if (formData.category === 'Food' && !formData.mealType) {
+      alert('Please select a meal type for food expenses.');
+      return;
+    }
+
+    if (!formData.amount || !formData.paidTo || !formData.description || !formData.location || !formData.category || !formData.date) {
+      alert('Please fill in all mandatory fields: Amount, Category, Paid To, Location, Date, and Description.');
+      return;
+    }
+
     try {
+      const isPartnerPayer = partner && formData.paidBy === partner.name;
       const data = {
         ...formData,
         amount: parseFloat(formData.amount),
-        userId: user.uid,
-        partnerId: user.partnerId || '',
+        userId: isPartnerPayer ? partner.uid : user.uid,
+        partnerId: isPartnerPayer ? user.uid : (user.partnerId || ''),
         updatedAt: serverTimestamp()
       };
 
@@ -213,10 +257,11 @@ export default function Expenses({ user, partner }: { user: any, partner: any })
     doc.setTextColor(100);
     doc.text(`Generated on: ${format(new Date(), 'MMM dd, yyyy HH:mm')}`, 14, 30);
     
-    const tableColumn = ["Date", "Category", "Paid To", "Amount", "Paid By", "Mode"];
+    const tableColumn = ["Date", "Category", "Description", "Paid To", "Amount", "Paid By", "Mode"];
     const tableRows = filteredExpenses.map(e => [
       format(parseISO(e.date), 'MMM dd, yyyy'),
       e.category,
+      e.description || '-',
       e.paidTo || e.paid_to,
       `INR ${e.amount.toFixed(2)}`,
       e.paidBy || e.paid_by,
@@ -273,11 +318,21 @@ export default function Expenses({ user, partner }: { user: any, partner: any })
   ];
   const totalAmount = filteredExpenses.reduce((sum, e) => sum + e.amount, 0);
   const totalOwedToMe = filteredExpenses
-    .filter(e => e.receivableFrom && e.userId === user.uid)
-    .reduce((sum, e) => sum + e.amount, 0);
+    .reduce((sum, e) => {
+      if (e.userId === user.uid) {
+        if (e.receivableFrom) return sum + e.amount;
+        if (e.isSplit) return sum + (e.amount / 2);
+      }
+      return sum;
+    }, 0);
   const totalIOwe = filteredExpenses
-    .filter(e => e.receivableFrom && e.userId !== user.uid)
-    .reduce((sum, e) => sum + e.amount, 0);
+    .reduce((sum, e) => {
+      if (e.userId !== user.uid) {
+        if (e.receivableFrom) return sum + e.amount;
+        if (e.isSplit) return sum + (e.amount / 2);
+      }
+      return sum;
+    }, 0);
   const netBalance = totalOwedToMe - totalIOwe;
 
   const handleDelete = async () => {
@@ -363,8 +418,8 @@ export default function Expenses({ user, partner }: { user: any, partner: any })
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <h2 className={`text-2xl font-bold ${isPink ? 'text-pink-600' : ''}`}>Expenses</h2>
-          <p className="text-stone-500">Manage and track all shared transactions</p>
+          <h2 className={`text-2xl font-bold ${isPink ? 'text-pink-600' : (isWhite ? 'text-black' : '')}`}>Expenses</h2>
+          <p className={mutedText}>Manage and track all shared transactions</p>
         </div>
         <div className="flex gap-3">
           {selectedIds.length > 0 && (
@@ -379,7 +434,7 @@ export default function Expenses({ user, partner }: { user: any, partner: any })
           )}
           <button
             onClick={() => setIsPurgeModalOpen(true)}
-            className="px-6 py-3 bg-white border border-stone-200 rounded-xl font-bold flex items-center gap-2 hover:bg-stone-50 transition-all text-sm text-red-500"
+            className={`px-6 py-3 ${isPink ? 'bg-[#3D171C]' : 'bg-black'} border ${borderCol} rounded-xl font-bold flex items-center gap-2 hover:bg-white/5 transition-all text-sm text-red-500`}
           >
             <Trash2 className="w-5 h-5" />
             Purge Data
@@ -390,7 +445,7 @@ export default function Expenses({ user, partner }: { user: any, partner: any })
                 const partnerName = expenses.find(e => e.userId !== user.uid)?.paidBy || expenses.find(e => e.userId !== user.uid)?.paid_by;
                 if (partnerName) setPaidByFilter(partnerName);
               }}
-              className="px-6 py-3 bg-white border border-stone-200 rounded-xl font-bold flex items-center gap-2 hover:bg-stone-50 transition-all text-sm"
+              className={`px-6 py-3 ${isPink ? 'bg-[#3D171C]' : 'bg-black'} border ${borderCol} rounded-xl font-bold flex items-center gap-2 hover:bg-white/5 transition-all text-sm text-white`}
             >
               <User className="w-5 h-5" />
               Her/His Expenses
@@ -398,14 +453,14 @@ export default function Expenses({ user, partner }: { user: any, partner: any })
           )}
           <button
             onClick={exportPDF}
-            className="px-6 py-3 bg-white border border-stone-200 rounded-xl font-bold flex items-center gap-2 hover:bg-stone-50 transition-all text-sm"
+            className={`px-6 py-3 ${isPink ? 'bg-[#3D171C]' : 'bg-black'} border ${borderCol} rounded-xl font-bold flex items-center gap-2 hover:bg-white/5 transition-all text-sm text-white`}
           >
             <FileText className="w-5 h-5" />
             Export PDF
           </button>
           <button
             onClick={() => setIsModalOpen(true)}
-            className={`${primaryColor} ${isPink ? 'text-white' : 'text-stone-900'} px-6 py-3 rounded-xl font-bold flex items-center gap-2 ${primaryHover} transition-all shadow-lg ${primaryShadow}`}
+            className={`${primaryColor} text-white px-6 py-3 rounded-xl font-bold flex items-center gap-2 ${primaryHover} transition-all shadow-lg ${primaryShadow}`}
           >
             <Plus className="w-5 h-5" />
             Add Expense
@@ -413,30 +468,30 @@ export default function Expenses({ user, partner }: { user: any, partner: any })
         </div>
       </div>
 
-      <div className="bg-white p-6 rounded-2xl border border-stone-200 space-y-4 shadow-sm">
+      <div className={`${cardBg} p-6 rounded-2xl border ${borderCol} space-y-4 shadow-sm`}>
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-4">
           <div className="relative lg:col-span-2">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-stone-400" />
+            <Search className={`absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 ${isWhite ? 'text-black' : 'text-white/40'}`} />
             <input
               type="text"
               placeholder="Search by Paid To or Description..."
-              className={`w-full pl-10 pr-4 py-2 bg-stone-50 border border-stone-200 rounded-xl focus:outline-none focus:ring-2 ${primaryRing}`}
+              className={`w-full pl-10 pr-4 py-2 ${isWhite ? 'bg-stone-50 border-stone-300 text-black' : 'bg-white/5 border-white/10 text-white'} border rounded-xl focus:outline-none focus:ring-2 ${primaryRing}`}
               value={search}
               onChange={(e) => setSearch(e.target.value)}
             />
           </div>
           <div className="flex gap-2 items-center lg:col-span-2 justify-end">
-            <Calendar className="w-5 h-5 text-stone-400 shrink-0" />
+            <Calendar className={`w-5 h-5 ${isWhite ? 'text-black' : 'text-white/40'} shrink-0`} />
             <input 
               type="date" 
-              className="flex-1 px-3 py-2 bg-stone-50 border border-stone-200 rounded-xl text-sm outline-none"
+              className={`flex-1 px-3 py-2 ${isWhite ? 'bg-stone-50 border-stone-300 text-black' : 'bg-white/5 border-white/10 text-white'} border rounded-xl text-sm outline-none`}
               value={dateRange.start}
               onChange={(e) => setDateRange({ ...dateRange, start: e.target.value })}
             />
-            <span className="text-stone-400">to</span>
+            <span className={mutedText}>to</span>
             <input 
               type="date" 
-              className="flex-1 px-3 py-2 bg-stone-50 border border-stone-200 rounded-xl text-sm outline-none"
+              className={`flex-1 px-3 py-2 ${isWhite ? 'bg-stone-50 border-stone-300 text-black' : 'bg-white/5 border-white/10 text-white'} border rounded-xl text-sm outline-none`}
               value={dateRange.end}
               onChange={(e) => setDateRange({ ...dateRange, end: e.target.value })}
             />
@@ -445,44 +500,44 @@ export default function Expenses({ user, partner }: { user: any, partner: any })
 
         <div className="flex flex-wrap gap-3 items-center">
           <div className="flex items-center gap-2">
-            <Filter className="w-4 h-4 text-stone-400" />
-            <span className="text-xs font-bold text-stone-400 uppercase">Filters:</span>
+            <Filter className={`w-4 h-4 ${isWhite ? 'text-black' : 'text-white/40'}`} />
+            <span className={`text-xs font-bold ${isWhite ? 'text-black' : 'text-white/40'} uppercase`}>Filters:</span>
           </div>
           
           <select 
-            className="px-3 py-1.5 bg-stone-50 border border-stone-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-stone-200"
+            className={`px-3 py-1.5 ${isWhite ? 'bg-stone-50 border-stone-200 text-stone-900' : 'bg-white/5 border-white/10 text-white'} border rounded-lg text-sm outline-none focus:ring-2 ${primaryRing}`}
             value={paidByFilter}
             onChange={(e) => setPaidByFilter(e.target.value)}
           >
-            <option value="All">All Paid By</option>
-            {uniquePaidBy.map(name => <option key={name} value={name}>{name}</option>)}
+            <option value="All" className={`${cardBg} ${textColor}`}>All Paid By</option>
+            {uniquePaidBy.map(name => <option key={name} value={name} className={`${cardBg} ${textColor}`}>{name}</option>)}
           </select>
 
           <select 
-            className="px-3 py-1.5 bg-stone-50 border border-stone-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-stone-200"
+            className={`px-3 py-1.5 ${isWhite ? 'bg-stone-50 border-stone-200 text-stone-900' : 'bg-white/5 border-white/10 text-white'} border rounded-lg text-sm outline-none focus:ring-2 ${primaryRing}`}
             value={modeFilter}
             onChange={(e) => setModeFilter(e.target.value)}
           >
-            <option value="All">All Modes</option>
-            {MODES.map(mode => <option key={mode} value={mode}>{mode}</option>)}
+            <option value="All" className={`${cardBg} ${textColor}`}>All Modes</option>
+            {MODES.map(mode => <option key={mode} value={mode} className={`${cardBg} ${textColor}`}>{mode}</option>)}
           </select>
 
           <select 
-            className="px-3 py-1.5 bg-stone-50 border border-stone-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-stone-200"
+            className={`px-3 py-1.5 ${isWhite ? 'bg-stone-50 border-stone-200 text-stone-900' : 'bg-white/5 border-white/10 text-white'} border rounded-lg text-sm outline-none focus:ring-2 ${primaryRing}`}
             value={monthFilter}
             onChange={(e) => setMonthFilter(e.target.value)}
           >
-            <option value="All">All Months</option>
-            {months.map(m => <option key={m.value} value={m.value}>{m.label}</option>)}
+            <option value="All" className={`${cardBg} ${textColor}`}>All Months</option>
+            {months.map(m => <option key={m.value} value={m.value} className={`${cardBg} ${textColor}`}>{m.label}</option>)}
           </select>
 
           <select 
-            className="px-3 py-1.5 bg-stone-50 border border-stone-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-stone-200"
+            className={`px-3 py-1.5 ${isWhite ? 'bg-stone-50 border-stone-200 text-stone-900' : 'bg-white/5 border-white/10 text-white'} border rounded-lg text-sm outline-none focus:ring-2 ${primaryRing}`}
             value={yearFilter}
             onChange={(e) => setYearFilter(e.target.value)}
           >
-            <option value="All">All Years</option>
-            {uniqueYears.map(year => <option key={year} value={year}>{year}</option>)}
+            <option value="All" className={`${cardBg} ${textColor}`}>All Years</option>
+            {uniqueYears.map(year => <option key={year} value={year} className={`${cardBg} ${textColor}`}>{year}</option>)}
           </select>
 
           {(filter !== 'All' || paidByFilter !== 'All' || modeFilter !== 'All' || dateRange.start || dateRange.end || search || monthFilter !== 'All' || yearFilter !== 'All') && (
@@ -509,8 +564,10 @@ export default function Expenses({ user, partner }: { user: any, partner: any })
             <button
               key={cat}
               onClick={() => setFilter(cat)}
-              className={`px-4 py-2 rounded-xl text-sm font-medium whitespace-nowrap transition-all ${
-                filter === cat ? `${primaryColor} text-white` : 'bg-stone-50 text-stone-600 hover:bg-stone-100'
+              className={`px-4 py-2 rounded-xl text-sm font-bold whitespace-nowrap transition-all ${
+                filter === cat 
+                  ? `${primaryColor} ${primaryText} shadow-lg ${primaryShadow}` 
+                  : `${isWhite ? 'bg-stone-100 text-black hover:bg-stone-200' : 'bg-white/5 text-white/60 hover:bg-white/10'}`
               }`}
             >
               {cat}
@@ -523,17 +580,18 @@ export default function Expenses({ user, partner }: { user: any, partner: any })
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse">
             <thead>
-              <tr className={`${isPink ? 'bg-stone-100' : 'bg-white/5'} border-b ${borderCol}`}>
+              <tr className={`${isWhite ? 'bg-stone-50' : (isPink ? 'bg-stone-100' : 'bg-white/5')} border-b ${borderCol}`}>
                 <th className="px-6 py-4">
                   <input 
                     type="checkbox" 
-                    className="w-4 h-4 rounded border-stone-300 text-pink-600 focus:ring-pink-500"
+                    className={`w-4 h-4 rounded border-stone-300 ${isPink ? 'text-pink-600 focus:ring-pink-500' : 'text-black focus:ring-black'}`}
                     checked={filteredExpenses.length > 0 && selectedIds.length === filteredExpenses.length}
                     onChange={toggleSelectAll}
                   />
                 </th>
                 <th className={`px-6 py-4 text-xs font-bold ${mutedText} uppercase tracking-wider whitespace-nowrap`}>Date</th>
                 <th className={`px-6 py-4 text-xs font-bold ${mutedText} uppercase tracking-wider whitespace-nowrap`}>Category</th>
+                <th className={`px-6 py-4 text-xs font-bold ${mutedText} uppercase tracking-wider whitespace-nowrap`}>Description</th>
                 <th className={`px-6 py-4 text-xs font-bold ${mutedText} uppercase tracking-wider whitespace-nowrap`}>Paid To</th>
                 <th className={`px-6 py-4 text-xs font-bold ${mutedText} uppercase tracking-wider whitespace-nowrap`}>Amount</th>
                 <th className={`px-6 py-4 text-xs font-bold ${mutedText} uppercase tracking-wider whitespace-nowrap`}>Payment Info</th>
@@ -552,7 +610,7 @@ export default function Expenses({ user, partner }: { user: any, partner: any })
                     <td className="px-6 py-4">
                       <input 
                         type="checkbox" 
-                        className="w-4 h-4 rounded border-stone-300 text-pink-600 focus:ring-pink-500"
+                        className={`w-4 h-4 rounded border-stone-300 ${isPink ? 'text-pink-600 focus:ring-pink-500' : 'text-black focus:ring-black'}`}
                         checked={selectedIds.includes(expense.id)}
                         onChange={() => toggleSelect(expense.id)}
                       />
@@ -561,9 +619,14 @@ export default function Expenses({ user, partner }: { user: any, partner: any })
                       <p className={`text-sm font-medium ${textColor}`}>{format(parseISO(expense.date), 'MMM dd, yyyy')}</p>
                     </td>
                     <td className="px-6 py-4">
-                      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${primaryBadge}`}>
+                      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold ${isWhite ? 'bg-stone-100 text-black border-stone-200' : 'bg-black text-white border border-white/10'}`}>
                         {expense.category}
                       </span>
+                    </td>
+                    <td className="px-6 py-4">
+                      <p className={`text-sm ${mutedText} max-w-[200px] truncate`} title={expense.description}>
+                        {expense.description || '-'}
+                      </p>
                     </td>
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-3">
@@ -571,7 +634,14 @@ export default function Expenses({ user, partner }: { user: any, partner: any })
                           <ReceiptIcon className={`w-4 h-4 ${mutedText}`} />
                         </div>
                         <div>
-                          <p className={`text-sm font-bold ${boldTextColor}`}>{expense.paidTo || expense.paid_to}</p>
+                          <p className={`text-sm font-bold ${boldTextColor}`}>
+                            {expense.paidTo || expense.paid_to}
+                            {expense.mealType && (
+                              <span className={`ml-2 text-[10px] px-1.5 py-0.5 rounded-md ${isPink ? 'bg-pink-100 text-pink-600' : 'bg-white/10 text-stone-400'}`}>
+                                {expense.mealType}
+                              </span>
+                            )}
+                          </p>
                           <p className={`text-xs ${mutedText}`}>{expense.paymentMode || expense.payment_mode}</p>
                         </div>
                       </div>
@@ -584,7 +654,7 @@ export default function Expenses({ user, partner }: { user: any, partner: any })
                         <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold ${
                           expense.userId === user.uid 
                             ? (isPink ? 'bg-pink-100 text-pink-700' : 'bg-blue-100 text-blue-700') 
-                            : (isPink ? 'bg-stone-900 text-white' : 'bg-amber-100 text-amber-700')
+                            : (isPink ? 'bg-black text-white' : 'bg-amber-100 text-amber-700')
                         }`}>
                           {(expense.paidBy || expense.paid_by)?.[0]}
                         </div>
@@ -597,7 +667,7 @@ export default function Expenses({ user, partner }: { user: any, partner: any })
                       </div>
                     </td>
                     <td className="px-6 py-4">
-                      {expense.receivableFrom ? (
+                      {expense.receivableFrom || expense.isSplit ? (
                         <div className={`flex items-center gap-2 ${
                           expense.userId === user.uid 
                             ? 'text-emerald-500' 
@@ -609,16 +679,21 @@ export default function Expenses({ user, partner }: { user: any, partner: any })
                             <ArrowDownLeft className="w-4 h-4" />
                           )}
                           <div className="flex flex-col">
-                            <span className="text-sm font-bold">₹{expense.amount.toFixed(2)}</span>
+                            <span className="text-sm font-bold">
+                              ₹{(expense.isSplit ? expense.amount / 2 : expense.amount).toFixed(2)}
+                            </span>
                             <span className="text-[10px] font-medium opacity-80">
-                              {expense.userId === user.uid ? `Owed by ${expense.receivableFrom}` : `You owe ${expense.paidBy || expense.paid_by}`}
+                              {expense.isSplit 
+                                ? (expense.userId === user.uid ? 'Partner owes 50%' : 'You owe 50%')
+                                : (expense.userId === user.uid ? `Owed by ${expense.receivableFrom}` : `You owe ${expense.paidBy || expense.paid_by}`)
+                              }
                             </span>
                           </div>
                         </div>
                       ) : (
                         <div className="flex items-center gap-2 opacity-30">
                           <HandCoins className="w-4 h-4" />
-                          <span className="text-xs">No split</span>
+                          <span className="text-xs">Personal</span>
                         </div>
                       )}
                     </td>
@@ -626,7 +701,7 @@ export default function Expenses({ user, partner }: { user: any, partner: any })
                       <div className="flex items-center justify-end gap-2">
                         <button 
                           onClick={() => setViewingExpense(expense)}
-                          className="p-2 hover:bg-stone-100 text-stone-400 hover:text-stone-900 rounded-lg transition-all"
+                          className={`p-2 ${isWhite ? 'hover:bg-stone-100 text-black' : 'hover:bg-stone-100 text-stone-400 hover:text-stone-900'} rounded-lg transition-all`}
                           title="View Details"
                         >
                           <ChevronRight className="w-4 h-4" />
@@ -634,7 +709,7 @@ export default function Expenses({ user, partner }: { user: any, partner: any })
                         {expense.receiptUrl && (
                           <button 
                             onClick={() => window.open(expense.receiptUrl, '_blank')}
-                            className="p-2 hover:bg-stone-100 text-stone-400 hover:text-stone-900 rounded-lg transition-all"
+                            className={`p-2 ${isWhite ? 'hover:bg-stone-100 text-black' : 'hover:bg-stone-100 text-stone-400 hover:text-stone-900'} rounded-lg transition-all`}
                             title="View Receipt"
                           >
                             <Download className="w-4 h-4" />
@@ -642,18 +717,18 @@ export default function Expenses({ user, partner }: { user: any, partner: any })
                         )}
                         <button 
                           onClick={() => setEditingExpense(expense)}
-                          className="p-2 hover:bg-stone-100 text-stone-400 hover:text-stone-900 rounded-lg opacity-0 group-hover:opacity-100 transition-all"
+                          className={`p-2 ${isWhite ? 'hover:bg-stone-100 text-black' : 'hover:bg-stone-100 text-stone-400 hover:text-stone-900'} rounded-lg opacity-0 group-hover:opacity-100 transition-all`}
                         >
                           <Edit2 className="w-4 h-4" />
                         </button>
                         <button 
                           onClick={() => setDeleteId(expense.id)}
-                          className="p-2 hover:bg-red-50 text-stone-400 hover:text-red-600 rounded-lg opacity-0 group-hover:opacity-100 transition-all"
+                          className={`p-2 hover:bg-red-50 ${isWhite ? 'text-black' : 'text-stone-400'} hover:text-red-600 rounded-lg opacity-0 group-hover:opacity-100 transition-all`}
                         >
                           <Trash2 className="w-4 h-4" />
                         </button>
-                        <button className="p-2 hover:bg-stone-200 rounded-lg opacity-0 group-hover:opacity-100 transition-all">
-                          <ChevronRight className="w-4 h-4 text-stone-400" />
+                        <button className={`p-2 ${isWhite ? 'hover:bg-stone-100' : 'hover:bg-stone-200'} rounded-lg opacity-0 group-hover:opacity-100 transition-all`}>
+                          <ChevronRight className={`w-4 h-4 ${isWhite ? 'text-black' : 'text-stone-400'}`} />
                         </button>
                       </div>
                     </td>
@@ -682,8 +757,8 @@ export default function Expenses({ user, partner }: { user: any, partner: any })
               </div>
             </div>
             <div className={`flex items-center justify-between p-4 ${netBalance >= 0 ? 'bg-emerald-50' : 'bg-rose-50'} rounded-2xl border ${netBalance >= 0 ? 'border-emerald-100' : 'border-rose-100'} shadow-sm`}>
-              <span className={`text-sm font-bold ${netBalance >= 0 ? 'text-emerald-700' : 'text-rose-700'} uppercase`}>Net Balance</span>
-              <span className={`text-xl font-black ${netBalance >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
+              <span className={`text-sm font-bold ${isWhite ? 'text-black' : (netBalance >= 0 ? 'text-emerald-700' : 'text-rose-700')} uppercase`}>Net Balance</span>
+              <span className={`text-xl font-black ${isWhite ? 'text-black' : (netBalance >= 0 ? 'text-emerald-600' : 'text-rose-600')}`}>
                 {netBalance >= 0 ? '+' : ''}₹{netBalance.toLocaleString()}
               </span>
             </div>
@@ -710,14 +785,14 @@ export default function Expenses({ user, partner }: { user: any, partner: any })
               <form onSubmit={handleSubmit} className="p-8 space-y-6 max-h-[80vh] overflow-y-auto">
                 <div className="grid grid-cols-2 gap-6">
                   <div className="col-span-2">
-                    <label className={`block text-xs font-bold ${mutedText} uppercase mb-2`}>Amount</label>
+                    <label className={`block text-xs font-bold ${mutedText} uppercase mb-2`}>Amount *</label>
                     <div className="relative">
                       <span className={`absolute left-4 top-1/2 -translate-y-1/2 ${mutedText} font-bold`}>₹</span>
                       <input
                         required
                         type="number"
                         step="0.01"
-                        className={`w-full pl-8 pr-4 py-3 ${isPink ? 'bg-stone-50 border-stone-200' : 'bg-white/5 border-white/10'} border rounded-xl focus:ring-2 ${primaryRing} outline-none text-lg font-bold ${textColor}`}
+                        className={`w-full pl-8 pr-4 py-3 ${isWhite ? 'bg-stone-50 border-stone-200' : (isPink ? 'bg-stone-50 border-stone-200' : 'bg-white/5 border-white/10')} border rounded-xl focus:ring-2 ${primaryRing} outline-none text-lg font-bold ${textColor}`}
                         value={formData.amount}
                         onChange={(e) => setFormData({ ...formData, amount: e.target.value })}
                         placeholder="0.00"
@@ -726,33 +801,55 @@ export default function Expenses({ user, partner }: { user: any, partner: any })
                   </div>
 
                   <div className="col-span-2">
-                    <label className={`block text-xs font-bold ${mutedText} uppercase mb-2`}>Category</label>
+                    <label className={`block text-xs font-bold ${mutedText} uppercase mb-2`}>Category *</label>
                     <select
-                      className={`w-full px-4 py-3 ${isPink ? 'bg-stone-50 border-stone-200' : 'bg-white/5 border-white/10'} border rounded-xl focus:ring-2 ${primaryRing} outline-none ${textColor}`}
+                      className={`w-full px-4 py-3 ${isWhite ? 'bg-stone-50 border-stone-200' : (isPink ? 'bg-stone-50 border-stone-200' : 'bg-white/5 border-white/10')} border rounded-xl focus:ring-2 ${primaryRing} outline-none ${textColor}`}
                       value={formData.category}
-                      onChange={(e) => setFormData({ ...formData, category: e.target.value })}
+                      onChange={(e) => setFormData({ ...formData, category: e.target.value, mealType: e.target.value === 'Food' ? formData.mealType : '' })}
                     >
-                      {CATEGORIES.map(c => <option key={c} value={c} className="text-stone-900">{c}</option>)}
+                      {CATEGORIES.map(c => <option key={c} value={c} className={`${cardBg} ${textColor}`}>{c}</option>)}
                     </select>
                   </div>
+
+                  {formData.category === 'Food' && (
+                    <div className="col-span-2">
+                      <label className={`block text-xs font-bold ${mutedText} uppercase mb-2`}>Meal Type</label>
+                      <div className="flex gap-2">
+                        {['Breakfast', 'Lunch', 'Dinner', 'Snacks', 'Drinks'].map((meal) => (
+                          <button
+                            key={meal}
+                            type="button"
+                            onClick={() => setFormData({ ...formData, mealType: meal })}
+                            className={`flex-1 py-2 rounded-xl text-xs font-bold border transition-all ${
+                              formData.mealType === meal
+                                ? `${primaryColor} ${isPink ? 'text-white border-transparent' : 'text-stone-900 border-transparent'}`
+                                : `${isPink ? 'bg-stone-50 border-stone-200 text-stone-600' : 'bg-white/5 border-white/10 text-stone-400'}`
+                            }`}
+                          >
+                            {meal}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
 
                   <div className="col-span-2">
                     <label className={`block text-xs font-bold ${mutedText} uppercase mb-2`}>Payment Mode</label>
                     <select
-                      className={`w-full px-4 py-3 ${isPink ? 'bg-stone-50 border-stone-200' : 'bg-white/5 border-white/10'} border rounded-xl focus:ring-2 ${primaryRing} outline-none ${textColor}`}
+                      className={`w-full px-4 py-3 ${isWhite ? 'bg-stone-50 border-stone-200' : (isPink ? 'bg-stone-50 border-stone-200' : 'bg-white/5 border-white/10')} border rounded-xl focus:ring-2 ${primaryRing} outline-none ${textColor}`}
                       value={formData.paymentMode}
                       onChange={(e) => setFormData({ ...formData, paymentMode: e.target.value })}
                     >
-                      {MODES.map(m => <option key={m} value={m} className="text-stone-900">{m}</option>)}
+                      {MODES.map(m => <option key={m} value={m} className={`${cardBg} ${textColor}`}>{m}</option>)}
                     </select>
                   </div>
 
                   <div className="col-span-2">
-                    <label className={`block text-xs font-bold ${mutedText} uppercase mb-2`}>Paid To</label>
+                    <label className={`block text-xs font-bold ${mutedText} uppercase mb-2`}>Paid To *</label>
                     <input
                       required
                       type="text"
-                      className={`w-full px-4 py-3 ${isPink ? 'bg-stone-50 border-stone-200' : 'bg-white/5 border-white/10'} border rounded-xl focus:ring-2 ${primaryRing} outline-none ${textColor}`}
+                      className={`w-full px-4 py-3 ${isWhite ? 'bg-stone-50 border-stone-200' : (isPink ? 'bg-stone-50 border-stone-200' : 'bg-white/5 border-white/10')} border rounded-xl focus:ring-2 ${primaryRing} outline-none ${textColor}`}
                       value={formData.paidTo}
                       onChange={(e) => setFormData({ ...formData, paidTo: e.target.value })}
                       placeholder="e.g. Starbucks, Amazon"
@@ -760,28 +857,104 @@ export default function Expenses({ user, partner }: { user: any, partner: any })
                   </div>
 
                   <div className="col-span-2">
-                    <label className={`block text-xs font-bold ${mutedText} uppercase mb-2`}>Upload Receipt / Screenshot</label>
-                    <div className="flex items-center gap-4">
-                      <label className={`flex-1 flex items-center justify-center gap-2 px-4 py-3 ${isPink ? 'bg-stone-50 border-stone-200' : 'bg-white/5 border-white/10'} border border-dashed rounded-xl cursor-pointer hover:bg-stone-100 transition-all`}>
-                        <ReceiptIcon className={`w-5 h-5 ${mutedText}`} />
-                        <span className={`text-sm ${mutedText}`}>{formData.receiptName || 'Click to upload file'}</span>
-                        <input type="file" className="hidden" onChange={handleFileUpload} accept="image/*,application/pdf" />
-                      </label>
+                    <label className={`block text-xs font-bold ${mutedText} uppercase mb-2`}>Location *</label>
+                    <div className="relative">
+                      <MapPin className={`absolute left-4 top-1/2 -translate-y-1/2 ${mutedText} w-4 h-4`} />
+                      <input
+                        required
+                        type="text"
+                        className={`w-full pl-10 pr-4 py-3 ${isWhite ? 'bg-stone-50 border-stone-200' : (isPink ? 'bg-stone-50 border-stone-200' : 'bg-white/5 border-white/10')} border rounded-xl focus:ring-2 ${primaryRing} outline-none ${textColor}`}
+                        value={formData.location}
+                        onChange={(e) => setFormData({ ...formData, location: e.target.value })}
+                        placeholder="e.g. City, Mall, or Shop Name"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="col-span-2">
+                    <label className={`block text-xs font-bold ${mutedText} uppercase mb-2`}>Upload Receipt / Screenshot (Optional)</label>
+                    <div 
+                      className={`relative group flex flex-col items-center justify-center gap-4 p-8 border-2 border-dashed rounded-2xl transition-all ${
+                        isDragging 
+                          ? 'border-white bg-white/10' 
+                          : `${borderCol} hover:bg-white/5`
+                      }`}
+                      onDragOver={onDragOver}
+                      onDragLeave={onDragLeave}
+                      onDrop={onDrop}
+                    >
+                      <div className={`w-16 h-16 rounded-full flex items-center justify-center ${isPink ? 'bg-[#FF8DA1]/10' : 'bg-white/10'}`}>
+                        <ReceiptIcon className={`w-8 h-8 ${isPink ? 'text-[#FF8DA1]' : 'text-white'}`} />
+                      </div>
+                      <div className="text-center">
+                        <p className={`text-sm font-bold ${textColor}`}>
+                          {formData.receiptName || 'Drag & drop or click to upload'}
+                        </p>
+                        <p className={`text-xs ${mutedText} mt-1`}>Supports JPG, PNG, PDF (Max 1MB)</p>
+                      </div>
+                      <input 
+                        type="file" 
+                        className="absolute inset-0 opacity-0 cursor-pointer" 
+                        onChange={handleFileUpload} 
+                        accept="image/*,application/pdf" 
+                      />
+                      
                       {formData.receiptUrl && (
                         <button 
                           type="button"
-                          onClick={() => setFormData(prev => ({ ...prev, receiptUrl: '', receiptName: '', receiptType: '' }))}
-                          className="p-3 bg-red-50 text-red-500 rounded-xl hover:bg-red-100 transition-all"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setFormData(prev => ({ ...prev, receiptUrl: '', receiptName: '', receiptType: '' }));
+                          }}
+                          className="absolute top-4 right-4 p-2 bg-red-500/20 text-red-500 rounded-xl hover:bg-red-500/30 transition-all z-10"
                         >
                           <X className="w-5 h-5" />
                         </button>
                       )}
                     </div>
+                    
                     {formData.receiptUrl && formData.receiptType.startsWith('image/') && (
-                      <div className="mt-4 relative rounded-xl overflow-hidden border border-stone-200 aspect-video">
+                      <div className="mt-4 relative rounded-2xl overflow-hidden border border-white/10 aspect-video group">
                         <img src={formData.receiptUrl} alt="Receipt preview" className="w-full h-full object-cover" />
+                        <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                           <p className="text-white font-bold text-sm">Receipt Preview</p>
+                        </div>
                       </div>
                     )}
+                  </div>
+
+                  <div className="col-span-2">
+                    <label className="flex items-center gap-3 cursor-pointer group">
+                      <div className={`w-6 h-6 rounded-md border-2 flex items-center justify-center transition-all ${
+                        formData.isSplit 
+                          ? `${primaryColor} border-transparent` 
+                          : `${isPink ? 'border-stone-200 bg-stone-50' : 'border-white/10 bg-white/5'}`
+                      }`}>
+                        {formData.isSplit && <Plus className="w-4 h-4 text-white" />}
+                      </div>
+                      <input
+                        type="checkbox"
+                        className="hidden"
+                        checked={formData.isSplit}
+                        onChange={(e) => setFormData({ ...formData, isSplit: e.target.checked })}
+                      />
+                      <div>
+                        <span className={`text-sm font-bold ${textColor}`}>Split 50/50 with partner</span>
+                        <p className={`text-[10px] ${mutedText}`}>Partner will owe half of this amount</p>
+                      </div>
+                    </label>
+                  </div>
+
+                  <div className="col-span-2">
+                    <label className={`block text-xs font-bold ${mutedText} uppercase mb-2`}>Paid By *</label>
+                    <select
+                      className={`w-full px-4 py-3 ${isWhite ? 'bg-stone-50 border-stone-200' : (isPink ? 'bg-stone-50 border-stone-200' : 'bg-white/5 border-white/10')} border rounded-xl focus:ring-2 ${primaryRing} outline-none ${textColor}`}
+                      value={formData.paidBy}
+                      onChange={(e) => setFormData({ ...formData, paidBy: e.target.value })}
+                    >
+                      <option value={user.name} className={`${cardBg} ${textColor}`}>{user.name} (Me)</option>
+                      {partner && <option value={partner.name} className={`${cardBg} ${textColor}`}>{partner.name} (Partner)</option>}
+                    </select>
                   </div>
 
                   <div className="col-span-2">
@@ -800,21 +973,22 @@ export default function Expenses({ user, partner }: { user: any, partner: any })
                   </div>
 
                   <div className="col-span-2">
-                    <label className={`block text-xs font-bold ${mutedText} uppercase mb-2`}>Date</label>
+                    <label className={`block text-xs font-bold ${mutedText} uppercase mb-2`}>Date *</label>
                     <input
                       required
                       type="date"
-                      className={`w-full px-4 py-3 ${isPink ? 'bg-stone-50 border-stone-200' : 'bg-white/5 border-white/10'} border rounded-xl focus:ring-2 ${primaryRing} outline-none ${textColor}`}
+                      className={`w-full px-4 py-3 ${isWhite ? 'bg-stone-50 border-stone-200' : (isPink ? 'bg-stone-50 border-stone-200' : 'bg-white/5 border-white/10')} border rounded-xl focus:ring-2 ${primaryRing} outline-none ${textColor}`}
                       value={formData.date}
                       onChange={(e) => setFormData({ ...formData, date: e.target.value })}
                     />
                   </div>
 
                   <div className="col-span-2">
-                    <label className={`block text-xs font-bold ${mutedText} uppercase mb-2`}>Description</label>
+                    <label className={`block text-xs font-bold ${mutedText} uppercase mb-2`}>Description *</label>
                     <input
+                      required
                       type="text"
-                      className={`w-full px-4 py-3 ${isPink ? 'bg-stone-50 border-stone-200' : 'bg-white/5 border-white/10'} border rounded-xl focus:ring-2 ${primaryRing} outline-none ${textColor}`}
+                      className={`w-full px-4 py-3 ${isWhite ? 'bg-stone-50 border-stone-200' : (isPink ? 'bg-stone-50 border-stone-200' : 'bg-white/5 border-white/10')} border rounded-xl focus:ring-2 ${primaryRing} outline-none ${textColor}`}
                       value={formData.description}
                       onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                       placeholder="e.g. Dinner with friends"
@@ -833,14 +1007,6 @@ export default function Expenses({ user, partner }: { user: any, partner: any })
           </div>
         )}
       </AnimatePresence>
-
-      <ConfirmDialog
-        isOpen={!!deleteId}
-        title="Delete Expense?"
-        message="This action cannot be undone. This expense will be permanently removed from your shared records."
-        onConfirm={handleDelete}
-        onCancel={() => setDeleteId(null)}
-      />
 
       {/* Expense Details Modal */}
       <AnimatePresence>
@@ -1006,8 +1172,8 @@ export default function Expenses({ user, partner }: { user: any, partner: any })
                       value={purgeConfig.month}
                       onChange={(e) => setPurgeConfig({ ...purgeConfig, month: e.target.value })}
                     >
-                      <option value="All">All Months (Full Year)</option>
-                      {months.map(m => <option key={m.value} value={m.value} className="text-stone-900">{m.label}</option>)}
+                      <option value="All" className={`${cardBg} ${textColor}`}>All Months (Full Year)</option>
+                      {months.map(m => <option key={m.value} value={m.value} className={`${cardBg} ${textColor}`}>{m.label}</option>)}
                     </select>
                   </div>
 
@@ -1018,7 +1184,7 @@ export default function Expenses({ user, partner }: { user: any, partner: any })
                       value={purgeConfig.year}
                       onChange={(e) => setPurgeConfig({ ...purgeConfig, year: e.target.value })}
                     >
-                      {uniqueYears.map(year => <option key={year} value={year} className="text-stone-900">{year}</option>)}
+                      {uniqueYears.map(year => <option key={year} value={year} className={`${cardBg} ${textColor}`}>{year}</option>)}
                     </select>
                   </div>
                 </div>
@@ -1043,6 +1209,16 @@ export default function Expenses({ user, partner }: { user: any, partner: any })
           </div>
         )}
       </AnimatePresence>
+
+      <ConfirmDialog
+        isOpen={!!deleteId}
+        title="Delete Expense?"
+        message="Are you sure you want to delete this expense? This action cannot be undone."
+        confirmText="Delete"
+        onConfirm={handleDelete}
+        onCancel={() => setDeleteId(null)}
+        isDanger={true}
+      />
     </div>
   );
 }

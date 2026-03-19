@@ -51,13 +51,17 @@ const Layout = ({ children, user, onLogout }: { children: React.ReactNode, user:
   }
 
   const isPink = user?.gender === 'Female';
-  const themeBg = isPink ? 'bg-[#FFF0F3]' : 'bg-black';
-  const primaryText = isPink ? 'text-[#FF8DA1]' : 'text-white';
-  const activeNav = isPink ? 'bg-[#FF8DA1] text-white' : 'bg-white/10 text-white';
-  const sidebarBg = isPink ? 'bg-white' : 'bg-black border-white/10';
-  const headerBg = isPink ? 'bg-white' : 'bg-black border-white/10';
-  const cardBg = isPink ? 'bg-white' : 'bg-stone-900';
-  const borderCol = isPink ? 'border-stone-100' : 'border-white/10';
+  const isWhite = user?.theme === 'white';
+  
+  const themeBg = isWhite ? 'bg-white' : (isPink ? 'bg-[#4A1D24]' : 'bg-black');
+  const primaryText = isWhite ? 'text-black font-bold' : 'text-white';
+  const activeNav = isWhite ? 'bg-stone-200 text-black font-bold' : (isPink ? 'bg-[#FF8DA1]/20 text-white' : 'bg-white/10 text-white');
+  const sidebarBg = isWhite ? 'bg-white border-stone-300' : (isPink ? 'bg-[#2D1115] border-white/5' : 'bg-black border-white/10');
+  const headerBg = isWhite ? 'bg-white border-stone-300' : (isPink ? 'bg-[#2D1115] border-white/5' : 'bg-black border-white/10');
+  const cardBg = isWhite ? 'bg-white' : (isPink ? 'bg-[#3D171C]' : 'bg-black');
+  const borderCol = isWhite ? 'border-stone-300' : (isPink ? 'border-white/5' : 'border-white/10');
+  const mutedText = isWhite ? 'text-black font-bold' : 'text-white/40';
+  const boldTextColor = isWhite ? 'text-black font-bold' : 'text-white';
 
   const [notifications, setNotifications] = useState<any[]>([]);
   const [showNotifications, setShowNotifications] = useState(false);
@@ -144,13 +148,13 @@ const Layout = ({ children, user, onLogout }: { children: React.ReactNode, user:
             >
               <div className="flex flex-col h-full">
                 <div className="p-6 flex items-center justify-between">
-                  <h1 className={`text-xl font-bold tracking-tight flex items-center gap-2 ${isPink ? 'text-[#FF8DA1]' : 'text-white'}`}>
+                  <h1 className={`text-xl font-bold tracking-tight flex items-center gap-2 ${isWhite ? 'text-black' : (isPink ? 'text-[#FF8DA1]' : 'text-white')}`}>
                     <TrendingUp className="w-6 h-6" />
                     BUBU & DUDU
                   </h1>
                   <button 
                     onClick={() => setIsSidebarOpen(false)}
-                    className="p-2 lg:hidden text-stone-400 hover:text-stone-600"
+                    className={`p-2 lg:hidden ${isWhite ? 'text-black hover:opacity-70' : 'text-white/40 hover:text-white'}`}
                   >
                     <X className="w-5 h-5" />
                   </button>
@@ -166,8 +170,8 @@ const Layout = ({ children, user, onLogout }: { children: React.ReactNode, user:
                       }}
                       className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${
                         location.pathname === item.path
-                          ? activeNav + ' font-medium'
-                          : isPink ? 'text-black hover:bg-[#FFF0F3] hover:text-[#FF8DA1]' : 'text-stone-400 hover:bg-white/5 hover:text-white'
+                          ? activeNav + ' font-bold'
+                          : isWhite ? 'text-black font-bold hover:bg-stone-100' : (isPink ? 'text-white/60 hover:bg-white/5 hover:text-white' : 'text-white/40 hover:bg-white/5 hover:text-white')
                       }`}
                     >
                       <item.icon className="w-5 h-5" />
@@ -176,11 +180,11 @@ const Layout = ({ children, user, onLogout }: { children: React.ReactNode, user:
                   ))}
                 </nav>
 
-              <div className="p-4 border-t border-stone-100/10">
+              <div className={`p-4 border-t ${isWhite ? 'border-stone-200' : 'border-white/10'}`}>
                 <button
                   onClick={onLogout}
                   className={`flex items-center gap-3 w-full px-4 py-3 rounded-xl transition-all ${
-                    isPink ? 'text-stone-500 hover:bg-red-50 hover:text-red-600' : 'text-stone-400 hover:bg-red-500/10 hover:text-red-500'
+                    isWhite ? 'text-black font-bold hover:bg-red-50 hover:text-red-600' : (isPink ? 'text-white/60 hover:bg-red-500/10 hover:text-red-500' : 'text-white/40 hover:bg-red-500/10 hover:text-red-500')
                   }`}
                 >
                   <LogOut className="w-5 h-5" />
@@ -198,7 +202,7 @@ const Layout = ({ children, user, onLogout }: { children: React.ReactNode, user:
         <header className={`h-16 border-b flex items-center justify-between px-6 ${headerBg}`}>
           <button
             onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-            className={`p-2 rounded-lg lg:hidden ${isPink ? 'hover:bg-stone-100' : 'hover:bg-white/10'}`}
+            className={`p-2 rounded-lg ${isPink ? 'hover:bg-white/10' : 'hover:bg-white/10'}`}
           >
             <Menu className="w-6 h-6" />
           </button>
@@ -207,11 +211,11 @@ const Layout = ({ children, user, onLogout }: { children: React.ReactNode, user:
             <div className="relative">
               <button 
                 onClick={() => setShowNotifications(!showNotifications)}
-                className={`p-2 relative ${isPink ? 'text-stone-400 hover:text-stone-600' : 'text-stone-500 hover:text-white'}`}
+                className={`p-2 relative ${isWhite ? 'text-black' : 'text-white/40 hover:text-white'}`}
               >
                 <Bell className="w-6 h-6" />
                 {notifications.some(n => !n.read) && (
-                  <span className="absolute top-2 right-2 w-2.5 h-2.5 bg-red-500 border-2 border-white rounded-full"></span>
+                  <span className={`absolute top-2 right-2 w-2.5 h-2.5 bg-red-500 border-2 ${isWhite ? 'border-white' : 'border-black'} rounded-full`}></span>
                 )}
               </button>
 
@@ -225,27 +229,27 @@ const Layout = ({ children, user, onLogout }: { children: React.ReactNode, user:
                       exit={{ opacity: 0, y: 10, scale: 0.95 }}
                       className={`absolute right-0 mt-2 w-80 rounded-2xl shadow-2xl z-50 border overflow-hidden ${cardBg} ${borderCol}`}
                     >
-                      <div className={`p-4 border-b flex justify-between items-center ${isPink ? 'bg-stone-50' : 'bg-white/5'}`}>
-                        <h4 className={`font-bold ${isPink ? 'text-stone-900' : 'text-white'}`}>Notifications</h4>
-                        <span className="text-xs font-medium px-2 py-1 bg-red-100 text-red-600 rounded-full">
+                      <div className={`p-4 border-b flex justify-between items-center ${isWhite ? 'bg-stone-50' : 'bg-white/5'}`}>
+                        <h4 className={`font-bold ${boldTextColor}`}>Notifications</h4>
+                        <span className="text-xs font-medium px-2 py-1 bg-red-500/20 text-red-400 rounded-full">
                           {notifications.filter(n => !n.read).length} New
                         </span>
                       </div>
                       <div className="max-h-96 overflow-y-auto">
                         {notifications.length === 0 ? (
-                          <div className="p-8 text-center text-stone-500 text-sm">No notifications yet</div>
+                          <div className={`p-8 text-center ${mutedText} text-sm`}>No notifications yet</div>
                         ) : (
                           notifications.map(n => (
                             <div 
                               key={n.id} 
                               onClick={() => markAsRead(n.id)}
                               className={`p-4 border-b last:border-0 cursor-pointer transition-colors ${
-                                !n.read ? (isPink ? 'bg-pink-50/50' : 'bg-white/5') : 'hover:bg-stone-50/50'
+                                !n.read ? (isWhite ? 'bg-stone-50' : (isPink ? 'bg-white/10' : 'bg-white/5')) : (isWhite ? 'hover:bg-stone-50' : 'hover:bg-white/5')
                               }`}
                             >
-                              <p className={`text-sm font-bold ${isPink ? 'text-stone-900' : 'text-white'}`}>{n.title}</p>
-                              <p className={`text-xs mt-1 ${isPink ? 'text-stone-600' : 'text-stone-400'}`}>{n.message}</p>
-                              <p className="text-[10px] mt-2 text-stone-500">{format(n.createdAt?.toDate() || new Date(), 'MMM dd, HH:mm')}</p>
+                              <p className={`text-sm font-bold ${boldTextColor}`}>{n.title}</p>
+                              <p className={`text-xs mt-1 ${isWhite ? 'text-black font-bold' : (isPink ? 'text-white/60' : 'text-white/40')}`}>{n.message}</p>
+                              <p className={`text-[10px] mt-2 ${mutedText}`}>{format(n.createdAt?.toDate() || new Date(), 'MMM dd, HH:mm')}</p>
                             </div>
                           ))
                         )}
@@ -255,12 +259,12 @@ const Layout = ({ children, user, onLogout }: { children: React.ReactNode, user:
                 )}
               </AnimatePresence>
             </div>
-            <div className={`flex items-center gap-3 pl-4 border-l ${isPink ? 'border-stone-200' : 'border-white/10'}`}>
+            <div className={`flex items-center gap-3 pl-4 border-l ${isWhite ? 'border-stone-200' : 'border-white/10'}`}>
               <div className="text-right hidden sm:block">
-                <p className={`text-sm font-medium ${isPink ? 'text-stone-900' : 'text-white'}`}>{user?.name}</p>
-                <p className={`text-xs ${isPink ? 'text-stone-500' : 'text-stone-400'}`}>{user?.email}</p>
+                <p className={`text-sm font-medium ${boldTextColor}`}>{user?.name}</p>
+                <p className={`text-xs ${mutedText}`}>{user?.email}</p>
               </div>
-              <div className="w-10 h-10 rounded-full flex items-center justify-center text-white font-bold" style={{ backgroundColor: isPink ? '#FF8DA1' : '#333' }}>
+              <div className="w-10 h-10 rounded-full flex items-center justify-center text-white font-bold" style={{ backgroundColor: isPink ? '#FF8DA1' : (isWhite ? '#1c1917' : '#333') }}>
                 {user?.name?.[0]}
               </div>
             </div>
@@ -366,10 +370,10 @@ export default function App() {
   };
 
   if (loading) return (
-    <div className="h-screen flex items-center justify-center bg-stone-50">
+    <div className="h-screen flex items-center justify-center bg-black">
       <div className="flex flex-col items-center gap-4">
-        <div className="w-12 h-12 border-4 border-emerald-600 border-t-transparent rounded-full animate-spin"></div>
-        <p className="text-stone-500 font-medium">Loading BUBU & DUDU...</p>
+        <div className="w-12 h-12 border-4 border-white/20 border-t-white rounded-full animate-spin"></div>
+        <p className="text-white/60 font-medium">Loading BUBU & DUDU...</p>
       </div>
     </div>
   );

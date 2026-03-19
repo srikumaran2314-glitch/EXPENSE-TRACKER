@@ -83,23 +83,23 @@ export default function Signup() {
   };
 
   return (
-    <div className="min-h-screen bg-stone-50 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-black flex items-center justify-center p-4">
       <motion.div 
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="max-w-md w-full bg-white rounded-3xl shadow-xl shadow-stone-200/50 border border-stone-100 overflow-hidden"
+        className="max-w-md w-full bg-black rounded-3xl shadow-2xl border border-white/10 overflow-hidden"
       >
-        <div className="p-8 text-center bg-stone-900 text-white">
+        <div className="p-8 text-center bg-stone-800 text-white border-b border-white/5">
           <div className="w-16 h-16 bg-white/10 backdrop-blur-md rounded-2xl flex items-center justify-center mx-auto mb-4">
             <TrendingUp className="w-8 h-8 text-white" />
           </div>
           <h2 className="text-2xl font-bold">BUBU & DUDU</h2>
-          <p className="text-stone-300 mt-1">Start tracking expenses with your partner</p>
+          <p className="text-white/60 mt-1">Start tracking expenses with your partner</p>
         </div>
 
         <div className="p-8 space-y-6">
           {error && (
-            <div className="p-4 bg-red-50 text-red-600 text-sm rounded-xl border border-red-100">
+            <div className="p-4 bg-red-500/10 text-red-500 text-sm rounded-xl border border-red-500/20">
               {error}
             </div>
           )}
@@ -107,7 +107,7 @@ export default function Signup() {
           <button
             onClick={handleGoogleSignIn}
             disabled={loading}
-            className="w-full flex items-center justify-center gap-3 px-4 py-3 border border-stone-200 rounded-2xl font-bold text-stone-600 hover:bg-stone-50 transition-all disabled:opacity-50"
+            className="w-full flex items-center justify-center gap-3 px-4 py-3 border border-white/10 rounded-2xl font-bold text-white hover:bg-white/5 transition-all disabled:opacity-50"
           >
             <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" className="w-5 h-5" alt="Google" />
             Sign up with Google
@@ -115,23 +115,23 @@ export default function Signup() {
 
           <div className="relative">
             <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t border-stone-100"></div>
+              <div className="w-full border-t border-white/5"></div>
             </div>
             <div className="relative flex justify-center text-xs uppercase">
-              <span className="bg-white px-2 text-stone-400 font-bold">Or continue with email</span>
+              <span className="bg-black px-2 text-white/40 font-bold">Or continue with email</span>
             </div>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-4">
               <div>
-                <label className="block text-xs font-bold text-stone-400 uppercase mb-2">Full Name</label>
+                <label className="block text-xs font-bold text-white/40 uppercase mb-2">Full Name</label>
                 <div className="relative">
-                  <User className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-stone-400" />
+                  <User className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-white/40" />
                   <input
                     required
                     type="text"
-                    className="w-full pl-12 pr-4 py-3 bg-stone-50 border border-stone-200 rounded-xl focus:ring-2 focus:ring-stone-900 outline-none transition-all"
+                    className="w-full pl-12 pr-4 py-3 bg-white/5 border border-white/10 rounded-xl focus:ring-2 focus:ring-white outline-none transition-all text-white"
                     placeholder="John Doe"
                     value={formData.name}
                     onChange={(e) => setFormData({ ...formData, name: e.target.value })}
@@ -140,13 +140,13 @@ export default function Signup() {
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-stone-400 uppercase mb-2">Email Address</label>
+                <label className="block text-xs font-bold text-white/40 uppercase mb-2">Email Address</label>
                 <div className="relative">
-                  <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-stone-400" />
+                  <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-white/40" />
                   <input
                     required
                     type="email"
-                    className="w-full pl-12 pr-4 py-3 bg-stone-50 border border-stone-200 rounded-xl focus:ring-2 focus:ring-stone-900 outline-none transition-all"
+                    className="w-full pl-12 pr-4 py-3 bg-white/5 border border-white/10 rounded-xl focus:ring-2 focus:ring-white outline-none transition-all text-white"
                     placeholder="name@example.com"
                     value={formData.email}
                     onChange={(e) => setFormData({ ...formData, email: e.target.value })}
@@ -155,13 +155,13 @@ export default function Signup() {
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-stone-400 uppercase mb-2">Mobile Number</label>
+                <label className="block text-xs font-bold text-white/40 uppercase mb-2">Mobile Number</label>
                 <div className="relative">
-                  <Phone className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-stone-400" />
+                  <Phone className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-white/40" />
                   <input
                     required
                     type="tel"
-                    className="w-full pl-12 pr-4 py-3 bg-stone-50 border border-stone-200 rounded-xl focus:ring-2 focus:ring-stone-900 outline-none transition-all"
+                    className="w-full pl-12 pr-4 py-3 bg-white/5 border border-white/10 rounded-xl focus:ring-2 focus:ring-white outline-none transition-all text-white"
                     placeholder="+1 (555) 000-0000"
                     value={formData.mobile}
                     onChange={(e) => setFormData({ ...formData, mobile: e.target.value })}
@@ -170,13 +170,13 @@ export default function Signup() {
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-stone-400 uppercase mb-2">Password</label>
+                <label className="block text-xs font-bold text-white/40 uppercase mb-2">Password</label>
                 <div className="relative">
-                  <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-stone-400" />
+                  <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-white/40" />
                   <input
                     required
                     type="password"
-                    className="w-full pl-12 pr-4 py-3 bg-stone-50 border border-stone-200 rounded-xl focus:ring-2 focus:ring-stone-900 outline-none transition-all"
+                    className="w-full pl-12 pr-4 py-3 bg-white/5 border border-white/10 rounded-xl focus:ring-2 focus:ring-white outline-none transition-all text-white"
                     placeholder="••••••••"
                     value={formData.password}
                     onChange={(e) => setFormData({ ...formData, password: e.target.value })}
@@ -186,7 +186,7 @@ export default function Signup() {
             </div>
 
             <div>
-              <label className="block text-xs font-bold text-stone-400 uppercase mb-2">Gender (for Theme)</label>
+              <label className="block text-xs font-bold text-white/40 uppercase mb-2">Gender (for Theme)</label>
               <div className="grid grid-cols-3 gap-2">
                 {['Male', 'Female', 'Other'].map((g) => (
                   <button
@@ -195,8 +195,8 @@ export default function Signup() {
                     onClick={() => setFormData({ ...formData, gender: g })}
                     className={`py-2 rounded-xl text-sm font-bold border transition-all ${
                       formData.gender === g
-                        ? 'bg-stone-900 text-white border-stone-900'
-                        : 'bg-stone-50 text-stone-500 border-stone-200 hover:bg-stone-100'
+                        ? 'bg-white text-black border-white'
+                        : 'bg-white/5 text-white/60 border-white/10 hover:bg-white/10'
                     }`}
                   >
                     {g}
@@ -208,16 +208,16 @@ export default function Signup() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full bg-stone-900 text-white py-4 rounded-2xl font-bold text-lg hover:bg-stone-800 transition-all shadow-lg shadow-stone-200 flex items-center justify-center gap-2 mt-4"
+              className="w-full bg-white text-black py-4 rounded-2xl font-bold text-lg hover:bg-stone-200 transition-all shadow-lg shadow-white/10 flex items-center justify-center gap-2 mt-4"
             >
               {loading ? 'Creating Account...' : 'Sign Up'}
               <ArrowRight className="w-5 h-5" />
             </button>
           </form>
 
-          <p className="text-center text-stone-500 text-sm">
+          <p className="text-center text-white/60 text-sm">
             Already have an account?{' '}
-            <Link to="/login" className="text-stone-900 font-bold hover:underline">
+            <Link to="/login" className="text-white font-bold hover:underline">
               Login
             </Link>
           </p>

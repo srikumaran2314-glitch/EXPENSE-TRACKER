@@ -29,15 +29,15 @@ const VoicePlayer = ({ voiceData, isMine }: { voiceData: string, isMine: boolean
 
   return (
     <div className={`flex items-center gap-3 p-2 rounded-xl border ${
-      isMine ? 'bg-white/10 border-white/20' : 'bg-stone-50 border-stone-200'
+      isMine ? 'bg-white/10 border-white/20' : 'bg-white/5 border-white/10'
     }`}>
       <button 
         onClick={togglePlay}
         className={`w-10 h-10 rounded-full flex items-center justify-center transition-all ${
-          isMine ? 'bg-white/20 hover:bg-white/30' : 'bg-white shadow-sm hover:bg-stone-100'
+          isMine ? 'bg-white/20 hover:bg-white/30' : 'bg-white/10 hover:bg-white/20'
         }`}
       >
-        {isPlaying ? <Pause className="w-5 h-5" /> : <Play className="w-5 h-5 ml-1" />}
+        {isPlaying ? <Pause className="w-5 h-5 text-white" /> : <Play className="w-5 h-5 ml-1 text-white" />}
       </button>
       <div className="flex-1 h-1 bg-current opacity-20 rounded-full overflow-hidden">
         <div className={`h-full bg-current ${isPlaying ? 'animate-pulse' : ''}`} style={{ width: '100%' }} />
@@ -69,7 +69,7 @@ const ExpensePreview = ({ expenseId, isMine }: { expenseId: string, isMine: bool
     fetchExpense();
   }, [expenseId]);
 
-  if (loading) return <div className="animate-pulse h-12 bg-stone-100 rounded-lg w-full mt-2" />;
+  if (loading) return <div className="animate-pulse h-12 bg-white/5 rounded-lg w-full mt-2" />;
   if (!expense) return null;
 
   return (
@@ -78,10 +78,10 @@ const ExpensePreview = ({ expenseId, isMine }: { expenseId: string, isMine: bool
       className={`mt-2 p-3 rounded-xl border flex items-center gap-3 transition-all hover:bg-opacity-90 cursor-pointer ${
       isMine 
         ? 'bg-white/10 border-white/20 text-white' 
-        : 'bg-stone-50 border-stone-100 text-stone-900'
+        : 'bg-white/5 border-white/10 text-white'
     }`}>
-      <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${isMine ? 'bg-white/20' : 'bg-white shadow-sm'}`}>
-        <Receipt className={`w-5 h-5 ${isMine ? 'text-white' : 'text-stone-500'}`} />
+      <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${isMine ? 'bg-white/20' : 'bg-white/10'}`}>
+        <Receipt className={`w-5 h-5 text-white`} />
       </div>
       <div className="flex-1 min-w-0">
         <div className="flex justify-between items-start">
@@ -89,7 +89,7 @@ const ExpensePreview = ({ expenseId, isMine }: { expenseId: string, isMine: bool
           <p className="text-xs font-bold ml-2 whitespace-nowrap">₹{expense.amount.toFixed(2)}</p>
         </div>
         <div className="flex items-center gap-2 mt-0.5">
-          <span className={`text-[10px] px-1.5 py-0.5 rounded-full ${isMine ? 'bg-white/20' : 'bg-stone-200'}`}>
+          <span className={`text-[10px] px-1.5 py-0.5 rounded-full ${isMine ? 'bg-white/20' : 'bg-white/10'}`}>
             {expense.category}
           </span>
           <span className="text-[10px] opacity-60">
@@ -127,12 +127,12 @@ export default function Chat({ user, partner }: { user: any, partner: any }) {
   const longPressTimer = useRef<NodeJS.Timeout | null>(null);
 
   const BACKGROUNDS = [
-    { id: 'default', name: 'Default', class: 'bg-stone-50/30' },
-    { id: 'pink', name: 'Soft Pink', class: 'bg-[#FFF0F3]' },
-    { id: 'blue', name: 'Sky Blue', class: 'bg-blue-50' },
-    { id: 'green', name: 'Mint', class: 'bg-emerald-50' },
+    { id: 'default', name: 'Default', class: 'bg-black/50' },
+    { id: 'pink', name: 'Deep Pink', class: 'bg-[#2D1115]' },
+    { id: 'blue', name: 'Midnight Blue', class: 'bg-blue-950/50' },
+    { id: 'green', name: 'Forest', class: 'bg-emerald-950/50' },
     { id: 'dark', name: 'Matte Black', class: 'bg-black' },
-    { id: 'pattern', name: 'Doodle', class: 'bg-[url("https://www.transparenttextures.com/patterns/cubes.png")] bg-repeat' },
+    { id: 'pattern', name: 'Doodle', class: 'bg-[url("https://www.transparenttextures.com/patterns/cubes.png")] bg-repeat opacity-10' },
   ];
 
   const currentBg = BACKGROUNDS.find(bg => bg.id === user.chatBackground) || BACKGROUNDS[0];
@@ -222,17 +222,18 @@ export default function Chat({ user, partner }: { user: any, partner: any }) {
   };
 
   const isPink = user?.gender === 'Female';
-  const primaryColor = isPink ? 'bg-[#FF8DA1]' : 'bg-black';
-  const primaryHover = isPink ? 'hover:bg-[#FF7A91]' : 'hover:bg-stone-900';
-  const primaryText = isPink ? 'text-[#FF8DA1]' : 'text-black';
-  const primaryBadge = isPink ? 'bg-[#FFF0F3] text-[#FF8DA1]' : 'bg-stone-100 text-black';
-  const primaryRing = isPink ? 'focus-within:ring-[#FF8DA1]' : 'focus-within:ring-black';
-  const primaryBorder = isPink ? 'border-[#FF8DA1]/20' : 'border-black/20';
-  const cardBg = isPink ? 'bg-white' : 'bg-stone-900';
-  const borderCol = isPink ? 'border-stone-200' : 'border-white/10';
-  const textColor = isPink ? 'text-black' : 'text-white';
-  const mutedText = isPink ? 'text-stone-600' : 'text-stone-400';
-  const boldTextColor = isPink ? 'text-black' : 'text-white';
+  const isWhite = user?.theme === 'white';
+  const primaryColor = isWhite ? 'bg-black' : (isPink ? 'bg-[#FF8DA1]' : 'bg-white');
+  const primaryHover = isWhite ? 'hover:bg-stone-900' : (isPink ? 'hover:bg-[#FF7A91]' : 'hover:bg-white/10');
+  const primaryText = isWhite ? 'text-white' : (isPink ? 'text-white' : 'text-black');
+  const primaryBadge = isWhite ? 'bg-stone-100 text-black font-bold' : (isPink ? 'bg-[#3D171C] text-[#FF8DA1]' : 'bg-stone-800 text-white');
+  const primaryRing = isWhite ? 'focus-within:ring-black' : (isPink ? 'focus-within:ring-[#FF8DA1]' : 'focus-within:ring-white');
+  const primaryBorder = isWhite ? 'border-stone-300' : (isPink ? 'border-[#FF8DA1]/20' : 'border-white/20');
+  const cardBg = isWhite ? 'bg-white' : (isPink ? 'bg-[#3D171C]' : 'bg-black');
+  const borderCol = isWhite ? 'border-stone-300' : (isPink ? 'border-white/5' : 'border-white/10');
+  const textColor = isWhite ? 'text-black font-bold' : 'text-white';
+  const mutedText = isWhite ? 'text-black font-bold' : 'text-white/60';
+  const boldTextColor = isWhite ? 'text-black font-bold' : 'text-white';
 
   const [isRecording, setIsRecording] = useState(false);
   const [mediaRecorder, setMediaRecorder] = useState<MediaRecorder | null>(null);
@@ -509,7 +510,7 @@ export default function Chat({ user, partner }: { user: any, partner: any }) {
 
   return (
     <div className={`h-[calc(100vh-10rem)] lg:h-[calc(100vh-12rem)] flex flex-col ${cardBg} rounded-3xl shadow-sm border ${borderCol} overflow-hidden`}>
-      <div className={`p-4 lg:p-6 border-b ${borderCol} flex items-center justify-between ${isPink ? 'bg-stone-50' : 'bg-white/5'}`}>
+      <div className={`p-4 lg:p-6 border-b ${borderCol} flex items-center justify-between ${isPink ? 'bg-white/5' : 'bg-white/5'}`}>
         <div className="flex items-center gap-4">
           <div className={`w-12 h-12 rounded-full flex items-center justify-center text-white font-bold ${primaryColor}`}>
             <User className="w-6 h-6" />
@@ -520,12 +521,12 @@ export default function Chat({ user, partner }: { user: any, partner: any }) {
               <p className={`text-xs flex items-center gap-1 font-medium ${
                 partner?.status === 'online' 
                   ? (isPink ? 'text-pink-600' : 'text-emerald-600') 
-                  : 'text-stone-400'
+                  : mutedText
               }`}>
                 <span className={`w-2 h-2 rounded-full ${
                   partner?.status === 'online' 
                     ? (isPink ? 'bg-pink-500' : 'bg-emerald-500 animate-pulse') 
-                    : 'bg-stone-300'
+                    : (isWhite ? 'bg-black' : 'bg-stone-300')
                 }`}></span>
                 {partner?.status === 'online' ? 'Online' : 'Offline'}
               </p>
@@ -539,38 +540,38 @@ export default function Chat({ user, partner }: { user: any, partner: any }) {
         </div>
         <div className="flex items-center gap-2">
           {isSearchOpen ? (
-            <div className="flex items-center gap-2 bg-stone-100 rounded-xl px-3 py-1 animate-in slide-in-from-right-4">
-              <Search className="w-4 h-4 text-stone-400" />
+            <div className="flex items-center gap-2 bg-white/5 rounded-xl px-3 py-1 animate-in slide-in-from-right-4 border border-white/10">
+              <Search className="w-4 h-4 text-white/40" />
               <input 
                 type="text" 
                 placeholder="Search messages..." 
-                className="bg-transparent border-none outline-none text-xs w-32 lg:w-48"
+                className="bg-transparent border-none outline-none text-xs w-32 lg:w-48 text-white"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 autoFocus
               />
               <button onClick={() => { setIsSearchOpen(false); setSearchQuery(''); }}>
-                <X className="w-4 h-4 text-stone-400" />
+                <X className="w-4 h-4 text-white/40" />
               </button>
             </div>
           ) : (
             <button 
               onClick={() => setIsSearchOpen(true)}
-              className={`p-2 rounded-xl hover:bg-stone-100 transition-all ${mutedText}`}
+              className={`p-2 rounded-xl hover:bg-white/10 transition-all ${mutedText}`}
             >
               <Search className="w-5 h-5" />
             </button>
           )}
           <button
             onClick={() => setShowGallery(true)}
-            className={`p-2 rounded-xl hover:bg-stone-100 transition-all ${mutedText}`}
+            className={`p-2 rounded-xl ${isWhite ? 'hover:bg-stone-100' : 'hover:bg-white/10'} transition-all ${mutedText}`}
             title="Media Gallery"
           >
             <ImageIcon className="w-5 h-5" />
           </button>
           <button 
             onClick={() => setIsBackgroundModalOpen(true)}
-            className={`p-2 rounded-xl hover:bg-stone-100 transition-all ${mutedText}`}
+            className={`p-2 rounded-xl hover:bg-white/10 transition-all ${mutedText}`}
             title="Chat Background"
           >
             <Palette className="w-5 h-5" />
@@ -578,7 +579,7 @@ export default function Chat({ user, partner }: { user: any, partner: any }) {
           <div className="relative">
             <button 
               onClick={() => setIsMenuOpen(!isMenuOpen)}
-              className={`p-2 rounded-xl hover:bg-stone-100 transition-all ${mutedText}`}
+              className={`p-2 rounded-xl ${isWhite ? 'hover:bg-stone-100' : 'hover:bg-white/10'} transition-all ${mutedText}`}
             >
               <MoreVertical className="w-5 h-5" />
             </button>
@@ -594,7 +595,7 @@ export default function Chat({ user, partner }: { user: any, partner: any }) {
                   >
                     <button 
                       onClick={() => setIsConfirmClearOpen(true)}
-                      className="w-full flex items-center gap-3 px-4 py-3 text-sm text-red-500 hover:bg-red-50 transition-all font-bold"
+                      className="w-full flex items-center gap-3 px-4 py-3 text-sm text-red-500 hover:bg-red-500/10 transition-all font-bold"
                     >
                       <Trash2 className="w-4 h-4" />
                       Clear Chat History
@@ -630,18 +631,18 @@ export default function Chat({ user, partner }: { user: any, partner: any }) {
               <div className="flex-1 overflow-y-auto pr-2">
                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
                   {galleryItems.length === 0 ? (
-                    <div className="col-span-full h-64 flex flex-col items-center justify-center text-stone-500">
+                    <div className="col-span-full h-64 flex flex-col items-center justify-center text-white/20">
                       <ImageIcon className="w-12 h-12 mb-4 opacity-20" />
                       <p>No photos or videos shared yet</p>
                     </div>
                   ) : (
                     galleryItems.map((item) => (
-                      <div key={item.id} className="aspect-square rounded-2xl overflow-hidden bg-stone-800 relative group cursor-pointer">
+                      <div key={item.id} className="aspect-square rounded-2xl overflow-hidden bg-white/5 relative group cursor-pointer">
                         {item.type === 'photo' ? (
                           <img src={item.fileData} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
                         ) : (
-                          <div className="w-full h-full flex items-center justify-center bg-stone-800">
-                            <Video className="w-8 h-8 text-stone-600" />
+                          <div className="w-full h-full flex items-center justify-center bg-white/5">
+                            <Video className="w-8 h-8 text-white/20" />
                             <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-black/40">
                               <Play className="w-8 h-8 text-white fill-white" />
                             </div>
@@ -663,8 +664,8 @@ export default function Chat({ user, partner }: { user: any, partner: any }) {
       </AnimatePresence>
 
       {pinnedMessages.length > 0 && (
-        <div className={`px-6 py-2 border-b ${borderCol} ${isPink ? 'bg-pink-50/50' : 'bg-white/5'} flex items-center gap-3 overflow-x-auto scrollbar-hide`}>
-          <Pin className="w-3 h-3 text-stone-400 shrink-0" />
+        <div className={`px-6 py-2 border-b ${borderCol} ${isPink ? 'bg-white/5' : 'bg-white/5'} flex items-center gap-3 overflow-x-auto scrollbar-hide`}>
+          <Pin className="w-3 h-3 text-white/40 shrink-0" />
           <div className="flex gap-2">
             {pinnedMessages.map(msg => (
               <div 
@@ -681,7 +682,7 @@ export default function Chat({ user, partner }: { user: any, partner: any }) {
                     e.stopPropagation();
                     handlePinMessage(msg.id, true);
                   }}
-                  className="text-stone-400 hover:text-red-500"
+                  className="text-white/40 hover:text-red-500"
                 >
                   <X className="w-3 h-3" />
                 </button>
@@ -696,13 +697,13 @@ export default function Chat({ user, partner }: { user: any, partner: any }) {
         className={`flex-1 overflow-y-auto p-6 space-y-6 transition-all duration-500 ${currentBg.class}`}
       >
         {loading ? (
-          <div className="text-center text-stone-400 py-10">Loading messages...</div>
+          <div className="text-center text-white/40 py-10">Loading messages...</div>
         ) : filteredMessages.length === 0 ? (
           <div className="text-center py-20">
-            <div className="w-20 h-20 bg-stone-100 rounded-full flex items-center justify-center mx-auto mb-4">
-              <MessageSquare className="w-10 h-10 text-stone-300" />
+            <div className="w-20 h-20 bg-white/5 rounded-full flex items-center justify-center mx-auto mb-4">
+              <MessageSquare className="w-10 h-10 text-white/20" />
             </div>
-            <p className="text-stone-500 font-medium">
+            <p className="text-white/40 font-medium">
               {searchQuery ? 'No messages match your search' : 'No messages yet. Say hi to your partner!'}
             </p>
           </div>
@@ -722,8 +723,8 @@ export default function Chat({ user, partner }: { user: any, partner: any }) {
                 <div 
                   className={`px-4 lg:px-6 py-2 lg:py-3 rounded-2xl shadow-sm relative group/msg ${
                     msg.senderId === user.uid 
-                      ? `${primaryColor} text-white rounded-tr-none` 
-                      : `${isPink ? 'bg-white text-stone-900' : 'bg-white/5 text-white'} border ${borderCol} rounded-tl-none`
+                      ? `${isWhite ? 'bg-black text-white' : 'bg-black text-white'} rounded-tr-none` 
+                      : `${isWhite ? 'bg-stone-100 text-black' : 'bg-[#FF8DA1] text-white'} rounded-tl-none`
                   }`}
                 >
                   {msg.isPinned && (
@@ -738,7 +739,7 @@ export default function Chat({ user, partner }: { user: any, partner: any }) {
                     <div className="space-y-2">
                       {msg.isOnceView ? (
                         msg.viewedAt ? (
-                          <div className={`flex items-center gap-2 p-3 rounded-xl border ${msg.senderId === user.uid ? 'bg-white/10 border-white/20' : 'bg-stone-50 border-stone-200'}`}>
+                          <div className={`flex items-center gap-2 p-3 rounded-xl border ${msg.senderId === user.uid ? 'bg-white/10 border-white/20' : 'bg-white/5 border-white/10'}`}>
                             <EyeOff className="w-4 h-4 opacity-50" />
                             <span className="text-xs font-bold opacity-50">Media Viewed</span>
                           </div>
@@ -749,7 +750,7 @@ export default function Chat({ user, partner }: { user: any, partner: any }) {
                               if (msg.senderId !== user.uid) handleViewOnce(msg.id);
                             }}
                             className={`flex items-center gap-2 p-3 rounded-xl border w-full text-left transition-all ${
-                              msg.senderId === user.uid ? 'bg-white/10 border-white/20' : 'bg-stone-50 border-stone-200 hover:bg-stone-100'
+                              msg.senderId === user.uid ? 'bg-white/10 border-white/20' : 'bg-white/5 border-white/10 hover:bg-white/10'
                             }`}
                           >
                             <Eye className="w-4 h-4" />
@@ -758,7 +759,7 @@ export default function Chat({ user, partner }: { user: any, partner: any }) {
                         )
                       ) : (
                         <div className={`p-2 rounded-xl border overflow-hidden ${
-                          msg.senderId === user.uid ? 'bg-white/10 border-white/20' : 'bg-stone-50 border-stone-200'
+                          msg.senderId === user.uid ? 'bg-white/10 border-white/20' : 'bg-white/5 border-white/10'
                         }`}>
                           {msg.type === 'photo' ? (
                             <img src={msg.fileData} alt="Shared" className="max-w-full rounded-lg" referrerPolicy="no-referrer" />
@@ -766,15 +767,15 @@ export default function Chat({ user, partner }: { user: any, partner: any }) {
                             <video src={msg.fileData} controls className="max-w-full rounded-lg" />
                           ) : (
                             <div className="flex items-center gap-3 p-1">
-                              <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${msg.senderId === user.uid ? 'bg-white/20' : 'bg-white shadow-sm'}`}>
-                                <Paperclip className={`w-5 h-5 ${msg.senderId === user.uid ? 'text-white' : 'text-stone-500'}`} />
+                              <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${msg.senderId === user.uid ? 'bg-white/20' : 'bg-white/10 shadow-sm'}`}>
+                                <Paperclip className={`w-5 h-5 ${msg.senderId === user.uid ? 'text-white' : 'text-white/60'}`} />
                               </div>
                               <div className="flex-1 min-w-0">
                                 <p className="text-xs font-bold truncate">{msg.fileName || 'File'}</p>
                                 <a 
                                   href={msg.fileData} 
                                   download={msg.fileName || 'download'}
-                                  className={`text-[10px] font-bold underline ${msg.senderId === user.uid ? 'text-white/80' : 'text-blue-600'}`}
+                                  className={`text-[10px] font-bold underline ${msg.senderId === user.uid ? 'text-white/80' : 'text-blue-400'}`}
                                 >
                                   Download
                                 </a>
@@ -790,21 +791,31 @@ export default function Chat({ user, partner }: { user: any, partner: any }) {
                     <ExpensePreview expenseId={msg.expenseRefId} isMine={msg.senderId === user.uid} />
                   )}
 
+                  {/* Subtle Timestamp on Hover/Tap */}
+                  <div className={`absolute -bottom-5 ${msg.senderId === user.uid ? 'right-0' : 'left-0'} opacity-0 group-hover/msg:opacity-100 transition-opacity whitespace-nowrap z-0`}>
+                    <p className={`text-[10px] flex items-center gap-1 ${mutedText}`}>
+                      {format(msg.createdAt?.toDate() || new Date(), 'HH:mm')}
+                      {msg.senderId === user.uid && (
+                        msg.read ? <CheckCheck className="w-3 h-3 text-emerald-400" /> : <Check className={`w-3 h-3 ${mutedText}`} />
+                      )}
+                    </p>
+                  </div>
+
                   {/* Reaction Picker Overlay */}
-                  <div className={`absolute -top-10 ${msg.senderId === user.uid ? 'right-0' : 'left-0'} ${activeMessageId === msg.id ? 'flex' : 'hidden lg:group-hover/msg:flex'} items-center gap-1 bg-white shadow-lg border border-stone-100 p-1 rounded-full z-10`}>
+                  <div className={`absolute -top-10 ${msg.senderId === user.uid ? 'right-0' : 'left-0'} ${activeMessageId === msg.id ? 'flex' : 'hidden lg:group-hover/msg:flex'} items-center gap-1 ${isWhite ? 'bg-white border-stone-200' : 'bg-black border-white/10'} shadow-lg border p-1 rounded-full z-10`}>
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
                         handlePinMessage(msg.id, msg.isPinned);
                         setActiveMessageId(null);
                       }}
-                      className={`w-8 h-8 flex items-center justify-center rounded-full hover:bg-stone-100 transition-all text-stone-400 ${
-                        msg.isPinned ? 'text-blue-500 bg-blue-50' : ''
+                      className={`w-8 h-8 flex items-center justify-center rounded-full ${isWhite ? 'hover:bg-stone-100' : 'hover:bg-white/10'} transition-all ${isWhite ? 'text-stone-400' : 'text-white/40'} ${
+                        msg.isPinned ? 'text-emerald-400 bg-emerald-500/20' : ''
                       }`}
                     >
                       <Pin className="w-4 h-4" />
                     </button>
-                    <div className="w-px h-4 bg-stone-100 mx-1" />
+                    <div className={`w-px h-4 ${isWhite ? 'bg-stone-200' : 'bg-white/10'} mx-1`} />
                     {EMOJIS.map(emoji => (
                       <button
                         key={emoji}
@@ -813,8 +824,8 @@ export default function Chat({ user, partner }: { user: any, partner: any }) {
                           handleReaction(msg.id, emoji, msg.reactions);
                           setActiveMessageId(null);
                         }}
-                        className={`w-8 h-8 flex items-center justify-center rounded-full hover:bg-stone-100 transition-all text-sm ${
-                          msg.reactions?.[emoji]?.includes(user.uid) ? 'bg-stone-100' : ''
+                        className={`w-8 h-8 flex items-center justify-center rounded-full ${isWhite ? 'hover:bg-stone-100' : 'hover:bg-white/10'} transition-all text-sm ${
+                          msg.reactions?.[emoji]?.includes(user.uid) ? (isWhite ? 'bg-stone-100' : 'bg-white/10') : ''
                         }`}
                       >
                         {emoji}
@@ -835,8 +846,8 @@ export default function Chat({ user, partner }: { user: any, partner: any }) {
                         }}
                         className={`flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold border transition-all ${
                           users.includes(user.uid)
-                            ? `${isPink ? 'bg-[#FF8DA1]/10 border-[#FF8DA1] text-[#FF8DA1]' : 'bg-black/10 border-black text-black'}`
-                            : 'bg-white border-stone-100 text-stone-500 hover:border-stone-300'
+                            ? 'bg-emerald-500/20 border-emerald-500/50 text-emerald-400'
+                            : 'bg-white/5 border-white/10 text-white/60 hover:border-white/30'
                         }`}
                       >
                         <span>{emoji}</span>
@@ -851,20 +862,20 @@ export default function Chat({ user, partner }: { user: any, partner: any }) {
                       {msg.read ? (
                         <CheckCheck className={`w-3 h-3 ${isPink ? 'text-pink-500' : 'text-emerald-500'}`} />
                       ) : (
-                        <Check className="w-3 h-3 text-stone-400" />
+                        <Check className={`w-3 h-3 ${mutedText}`} />
                       )}
                       <button 
                         onClick={(e) => {
                           e.stopPropagation();
                           setDeleteId(msg.id);
                         }}
-                        className={`${activeMessageId === msg.id ? 'opacity-100' : 'opacity-0 lg:group-hover:opacity-100'} p-1 hover:bg-red-50 text-stone-400 hover:text-red-500 rounded-lg transition-all`}
+                        className={`${activeMessageId === msg.id ? 'opacity-100' : 'opacity-0 lg:group-hover:opacity-100'} p-1 hover:bg-red-50 ${mutedText} hover:text-red-500 rounded-lg transition-all`}
                       >
                         <Trash2 className="w-3 h-3" />
                       </button>
                     </div>
                   )}
-                  <p className="text-[10px] text-stone-400 font-medium">
+                  <p className={`text-[10px] ${mutedText} font-medium`}>
                     {msg.createdAt?.toDate ? format(msg.createdAt.toDate(), 'HH:mm') : '...'}
                   </p>
                 </div>
@@ -874,29 +885,29 @@ export default function Chat({ user, partner }: { user: any, partner: any }) {
         )}
       </div>
 
-      <form onSubmit={handleSend} className="p-6 bg-white border-t border-stone-100">
+      <form onSubmit={handleSend} className={`p-6 ${isWhite ? 'bg-white border-stone-100' : 'bg-black border-white/10'} border-t`}>
         {selectedExpenseId && (
-          <div className="mb-4 p-3 bg-stone-50 rounded-2xl border border-stone-200 flex items-center justify-between">
+          <div className={`mb-4 p-3 ${isWhite ? 'bg-stone-50 border-stone-200' : 'bg-white/5 border-white/10'} rounded-2xl border flex items-center justify-between`}>
             <div className="flex items-center gap-3">
               <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${primaryColor} text-white`}>
                 <Receipt className="w-4 h-4" />
               </div>
-              <p className="text-xs font-bold text-stone-600">Referencing an expense</p>
+              <p className={`text-xs font-bold ${isWhite ? 'text-stone-600' : 'text-white/60'}`}>Referencing an expense</p>
             </div>
             <button 
               type="button" 
               onClick={() => setSelectedExpenseId(null)}
-              className="p-1 hover:bg-stone-200 rounded-full text-stone-400"
+              className={`p-1 ${isWhite ? 'hover:bg-stone-200' : 'hover:bg-white/10'} rounded-full ${mutedText}`}
             >
               <X className="w-4 h-4" />
             </button>
           </div>
         )}
-        <div className={`flex items-center gap-4 bg-stone-50 p-2 rounded-2xl border border-stone-200 transition-all ${primaryRing}`}>
+        <div className={`flex items-center gap-4 ${isWhite ? 'bg-stone-50 border-stone-200' : 'bg-white/5 border-white/10'} p-2 rounded-2xl border transition-all ${primaryRing}`}>
           {isRecording ? (
             <div className="flex-1 flex items-center gap-4 px-4 py-2">
               <div className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
-              <span className="text-sm font-bold text-stone-600">
+              <span className={`text-sm font-bold ${textColor}`}>
                 Recording... {Math.floor(recordingTime / 60)}:{String(recordingTime % 60).padStart(2, '0')}
               </span>
               <div className="flex-1" />
@@ -910,13 +921,13 @@ export default function Chat({ user, partner }: { user: any, partner: any }) {
             </div>
           ) : (
             <>
-              <button type="button" className="p-2 text-stone-400 hover:text-stone-600">
+              <button type="button" className={`p-2 ${mutedText} ${isWhite ? 'hover:text-black' : 'hover:text-stone-600'}`}>
                 <Smile className="w-6 h-6" />
               </button>
               <button 
                 type="button" 
                 onClick={() => fileInputRef.current?.click()}
-                className="p-2 text-stone-400 hover:text-stone-600 hover:bg-stone-100 rounded-xl transition-all"
+                className={`p-2 ${mutedText} ${isWhite ? 'hover:text-black' : 'hover:text-stone-600'} ${isWhite ? 'hover:bg-stone-100' : 'hover:bg-white/10'} rounded-xl transition-all`}
               >
                 <Paperclip className="w-6 h-6" />
               </button>
@@ -929,14 +940,14 @@ export default function Chat({ user, partner }: { user: any, partner: any }) {
               <button 
                 type="button" 
                 onClick={() => setIsExpenseModalOpen(true)}
-                className={`p-2 transition-all rounded-xl ${selectedExpenseId ? `${primaryColor} text-white` : 'text-stone-400 hover:text-stone-600 hover:bg-stone-100'}`}
+                className={`p-2 transition-all rounded-xl ${selectedExpenseId ? `${primaryColor} text-white` : `${mutedText} ${isWhite ? 'hover:text-black' : 'hover:text-stone-600'} ${isWhite ? 'hover:bg-stone-100' : 'hover:bg-white/10'}`}`}
               >
                 <Receipt className="w-6 h-6" />
               </button>
               <button 
                 type="button" 
                 onClick={() => setIsOnceView(!isOnceView)}
-                className={`p-2 transition-all rounded-xl ${isOnceView ? 'bg-orange-100 text-orange-600' : 'text-stone-400 hover:text-stone-600 hover:bg-stone-100'}`}
+                className={`p-2 transition-all rounded-xl ${isOnceView ? 'bg-orange-100 text-orange-600' : `${mutedText} ${isWhite ? 'hover:text-black' : 'hover:text-stone-600'} ${isWhite ? 'hover:bg-stone-100' : 'hover:bg-white/10'}`}`}
                 title="View Once Toggle"
               >
                 {isOnceView ? <EyeOff className="w-6 h-6" /> : <Eye className="w-6 h-6" />}
@@ -944,21 +955,21 @@ export default function Chat({ user, partner }: { user: any, partner: any }) {
               <input
                 type="text"
                 placeholder="Type your message..."
-                className="flex-1 bg-transparent border-none outline-none py-2 px-2 text-sm"
+                className={`flex-1 bg-transparent border-none outline-none py-2 px-2 text-sm ${textColor}`}
                 value={newMessage}
                 onChange={(e) => onInputChange(e.target.value)}
               />
               <button 
                 type="button"
                 onClick={startRecording}
-                className="p-2 text-stone-400 hover:text-stone-600 transition-all"
+                className={`p-2 ${mutedText} ${isWhite ? 'hover:text-black' : 'hover:text-stone-600'} transition-all`}
               >
                 <Mic className="w-6 h-6" />
               </button>
               <button
                 type="submit"
                 disabled={!newMessage.trim() && !selectedExpenseId}
-                className={`${primaryColor} text-white p-3 rounded-xl ${primaryHover} transition-all disabled:opacity-50 shadow-lg shadow-stone-100`}
+                className={`${primaryColor} ${primaryText} p-3 rounded-xl ${primaryHover} transition-all disabled:opacity-50 shadow-lg ${isWhite ? 'shadow-stone-100' : 'shadow-black/20'}`}
               >
                 <Send className="w-5 h-5" />
               </button>
@@ -975,17 +986,17 @@ export default function Chat({ user, partner }: { user: any, partner: any }) {
               initial={{ scale: 0.9, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.9, opacity: 0 }}
-              className="bg-white w-full max-w-md rounded-3xl overflow-hidden shadow-2xl"
+              className={`${isWhite ? 'bg-white' : 'bg-black'} w-full max-w-md rounded-3xl overflow-hidden shadow-2xl border ${borderCol}`}
             >
-              <div className="p-6 border-b border-stone-100 flex justify-between items-center bg-stone-50">
-                <h3 className="text-xl font-bold">Select Expense</h3>
-                <button onClick={() => setIsExpenseModalOpen(false)} className="p-2 hover:bg-stone-200 rounded-full">
+              <div className={`p-6 border-b ${borderCol} flex justify-between items-center ${isWhite ? 'bg-stone-50' : 'bg-white/5'}`}>
+                <h3 className={`text-xl font-bold ${textColor}`}>Select Expense</h3>
+                <button onClick={() => setIsExpenseModalOpen(false)} className={`p-2 ${isWhite ? 'hover:bg-stone-200' : 'hover:bg-white/10'} rounded-full ${mutedText}`}>
                   <X className="w-5 h-5" />
                 </button>
               </div>
               <div className="p-4 max-h-[400px] overflow-y-auto space-y-2">
                 {recentExpenses.length === 0 ? (
-                  <p className="text-center py-10 text-stone-400">No recent expenses found</p>
+                  <p className={`text-center py-10 ${mutedText}`}>No recent expenses found</p>
                 ) : (
                   recentExpenses.map((exp) => (
                     <button
@@ -994,30 +1005,30 @@ export default function Chat({ user, partner }: { user: any, partner: any }) {
                         setSelectedExpenseId(exp.id);
                         setIsExpenseModalOpen(false);
                       }}
-                      className="w-full p-4 rounded-2xl border border-stone-100 hover:border-stone-300 hover:bg-stone-50 transition-all text-left flex items-center gap-4"
+                      className={`w-full p-4 rounded-2xl border ${borderCol} ${isWhite ? 'hover:border-stone-300 hover:bg-stone-50' : 'hover:bg-white/5'} transition-all text-left flex items-center gap-4`}
                     >
                       <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${primaryBadge}`}>
                         <Receipt className="w-5 h-5" />
                       </div>
                       <div className="flex-1 min-w-0">
                         <div className="flex justify-between items-start">
-                          <p className="font-bold truncate">{exp.paid_to}</p>
-                          <p className={`font-bold ml-2 ${isPink ? 'text-pink-600' : 'text-stone-900'}`}>₹{exp.amount.toFixed(2)}</p>
+                          <p className={`font-bold truncate ${textColor}`}>{exp.paid_to}</p>
+                          <p className={`font-bold ml-2 ${isPink ? 'text-pink-600' : (isWhite ? 'text-stone-900' : 'text-white')}`}>₹{exp.amount.toFixed(2)}</p>
                         </div>
                         <div className="flex items-center gap-2 mt-1">
-                          <span className="text-xs text-stone-500">{exp.category}</span>
-                          <span className="text-xs text-stone-400">•</span>
-                          <span className="text-xs text-stone-400">{format(parseISO(exp.date), 'MMM dd, yyyy')}</span>
+                          <span className={`text-xs ${mutedText}`}>{exp.category}</span>
+                          <span className={`text-xs ${mutedText}`}>•</span>
+                          <span className={`text-xs ${mutedText}`}>{format(parseISO(exp.date), 'MMM dd, yyyy')}</span>
                         </div>
                       </div>
                     </button>
                   ))
                 )}
               </div>
-              <div className="p-6 bg-stone-50 border-t border-stone-100">
+              <div className={`p-6 ${isWhite ? 'bg-stone-50' : 'bg-white/5'} border-t ${borderCol}`}>
                 <button 
                   onClick={() => setIsExpenseModalOpen(false)}
-                  className="w-full py-3 rounded-xl font-bold text-stone-600 hover:bg-stone-200 transition-all"
+                  className={`w-full py-3 rounded-xl font-bold ${isWhite ? 'text-stone-600 hover:bg-stone-200' : 'text-white/60 hover:bg-white/10'} transition-all`}
                 >
                   Cancel
                 </button>
@@ -1087,11 +1098,11 @@ export default function Chat({ user, partner }: { user: any, partner: any }) {
               initial={{ scale: 0.9, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.9, opacity: 0 }}
-              className="bg-white w-full max-w-md rounded-3xl overflow-hidden shadow-2xl"
+              className={`${isWhite ? 'bg-white' : 'bg-black'} w-full max-w-md rounded-3xl overflow-hidden shadow-2xl border ${borderCol}`}
             >
-              <div className="p-6 border-b border-stone-100 flex justify-between items-center bg-stone-50">
-                <h3 className="text-xl font-bold">Chat Background</h3>
-                <button onClick={() => setIsBackgroundModalOpen(false)} className="p-2 hover:bg-stone-200 rounded-full">
+              <div className={`p-6 border-b ${borderCol} flex justify-between items-center ${isWhite ? 'bg-stone-50' : 'bg-white/5'}`}>
+                <h3 className={`text-xl font-bold ${textColor}`}>Chat Background</h3>
+                <button onClick={() => setIsBackgroundModalOpen(false)} className={`p-2 ${isWhite ? 'hover:bg-stone-200' : 'hover:bg-white/10'} rounded-full ${mutedText}`}>
                   <X className="w-5 h-5" />
                 </button>
               </div>
@@ -1101,21 +1112,21 @@ export default function Chat({ user, partner }: { user: any, partner: any }) {
                     key={bg.id}
                     onClick={() => handleUpdateBackground(bg.id)}
                     className={`group relative h-24 rounded-2xl border-2 transition-all overflow-hidden ${
-                      user.chatBackground === bg.id ? 'border-pink-500 ring-4 ring-pink-50' : 'border-stone-100 hover:border-stone-300'
+                      user.chatBackground === bg.id ? (isPink ? 'border-pink-500 ring-4 ring-pink-50' : 'border-emerald-500 ring-4 ring-emerald-50') : (isWhite ? 'border-stone-100 hover:border-stone-300' : 'border-white/10 hover:border-white/30')
                     }`}
                   >
                     <div className={`absolute inset-0 ${bg.class}`} />
                     <div className="absolute inset-0 bg-black/0 group-hover:bg-black/5 transition-all" />
-                    <div className="absolute bottom-2 left-2 px-2 py-1 bg-white/90 backdrop-blur-sm rounded-lg text-[10px] font-bold">
+                    <div className={`absolute bottom-2 left-2 px-2 py-1 ${isWhite ? 'bg-white/90' : 'bg-black/60'} backdrop-blur-sm rounded-lg text-[10px] font-bold ${isWhite ? 'text-stone-900' : 'text-white'}`}>
                       {bg.name}
                     </div>
                   </button>
                 ))}
               </div>
-              <div className="p-6 bg-stone-50 border-t border-stone-100">
+              <div className={`p-6 ${isWhite ? 'bg-stone-50' : 'bg-white/5'} border-t ${borderCol}`}>
                 <button 
                   onClick={() => setIsBackgroundModalOpen(false)}
-                  className="w-full py-3 rounded-xl font-bold text-stone-600 hover:bg-stone-200 transition-all"
+                  className={`w-full py-3 rounded-xl font-bold ${isWhite ? 'text-stone-600 hover:bg-stone-200' : 'text-white/60 hover:bg-white/10'} transition-all`}
                 >
                   Close
                 </button>

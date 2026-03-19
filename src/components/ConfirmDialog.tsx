@@ -31,27 +31,27 @@ export default function ConfirmDialog({
             initial={{ scale: 0.9, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             exit={{ scale: 0.9, opacity: 0 }}
-            className="bg-white w-full max-w-sm rounded-3xl overflow-hidden shadow-2xl"
+            className="bg-black w-full max-w-sm rounded-3xl overflow-hidden shadow-2xl border border-white/10"
           >
             <div className="p-6 text-center">
-              <div className={`w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 ${isDanger ? 'bg-red-50 text-red-600' : 'bg-blue-50 text-blue-600'}`}>
+              <div className={`w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 ${isDanger ? 'bg-red-500/20 text-red-500' : 'bg-blue-500/20 text-blue-500'}`}>
                 <AlertTriangle className="w-8 h-8" />
               </div>
-              <h3 className="text-xl font-bold text-stone-900">{title}</h3>
-              <p className="text-stone-500 mt-2 text-sm">{message}</p>
+              <h3 className="text-xl font-bold text-white">{title}</h3>
+              <p className="text-white/60 mt-2 text-sm">{message}</p>
             </div>
             
-            <div className="p-6 bg-stone-50 flex gap-3">
+            <div className="p-6 bg-white/5 flex gap-3">
               <button
                 onClick={onCancel}
-                className="flex-1 py-3 rounded-xl font-bold text-stone-600 hover:bg-stone-200 transition-all"
+                className="flex-1 py-3 rounded-xl font-bold text-white/60 hover:bg-white/10 transition-all"
               >
                 {cancelText}
               </button>
               <button
                 onClick={onConfirm}
                 className={`flex-1 py-3 rounded-xl font-bold text-white transition-all shadow-lg ${
-                  isDanger ? 'bg-red-600 hover:bg-red-700 shadow-red-100' : 'bg-stone-900 hover:bg-stone-800 shadow-stone-100'
+                  isDanger ? 'bg-red-600 hover:bg-red-700 shadow-red-900/20' : 'bg-emerald-600 hover:bg-emerald-700 shadow-emerald-900/20'
                 }`}
               >
                 {confirmText}

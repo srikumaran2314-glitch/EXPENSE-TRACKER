@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { 
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, 
-  PieChart, Pie, Cell, Legend 
+  PieChart, Pie, Cell, Legend, LineChart, Line
 } from 'recharts';
 import { collection, query, where, onSnapshot, orderBy, or, limit } from 'firebase/firestore';
 import { db } from '../firebase';
@@ -11,14 +11,14 @@ import { Link } from 'react-router-dom';
 
 const COLORS = ['#10b981', '#3b82f6', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899'];
 
-const StatCard = ({ title, amount, icon: Icon, trend, color, cardBg, textColor, mutedText, borderCol, isBalance }: any) => (
+const StatCard = ({ title, amount, icon: Icon, trend, color, cardBg, textColor, mutedText, borderCol, isBalance, isWhite }: any) => (
   <div className={`${cardBg} p-6 rounded-2xl shadow-sm border ${borderCol}`}>
     <div className="flex justify-between items-start mb-4">
       <div className={`p-3 rounded-xl ${color}`}>
-        <Icon className="w-6 h-6 text-white" />
+        <Icon className={`w-6 h-6 ${isWhite ? 'text-white' : (color === 'bg-white' ? 'text-black' : 'text-white')}`} />
       </div>
       {trend && (
-        <span className={`text-xs font-medium px-2 py-1 rounded-full ${trend > 0 ? 'bg-red-50 text-red-600' : 'bg-emerald-50 text-emerald-600'}`}>
+        <span className={`text-xs font-medium px-2 py-1 rounded-full ${trend > 0 ? 'bg-red-500/20 text-red-400' : 'bg-emerald-500/20 text-emerald-400'}`}>
           {trend > 0 ? '+' : ''}{trend}%
         </span>
       )}
@@ -37,18 +37,22 @@ const StatCard = ({ title, amount, icon: Icon, trend, color, cardBg, textColor, 
 
 export default function Dashboard({ user, partner }: { user: any, partner: any }) {
   const [expenses, setExpenses] = useState<any[]>([]);
+  const [recentExpenseFilter, setRecentExpenseFilter] = useState<'All' | 'Me' | 'Partner'>('All');
+  const [chartFilter, setChartFilter] = useState<'Me' | 'Partner' | 'Both'>('Me');
   const [budgets, setBudgets] = useState<any[]>([]);
   const [wishlist, setWishlist] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   const isPink = user?.gender === 'Female';
-  const primaryColor = isPink ? '#FF8DA1' : '#000000';
-  const primaryBg = isPink ? 'bg-[#FF8DA1]' : 'bg-black';
-  const cardBg = isPink ? 'bg-white' : 'bg-stone-900';
-  const textColor = isPink ? 'text-black' : 'text-white';
-  const mutedText = isPink ? 'text-stone-600' : 'text-stone-400';
-  const boldTextColor = isPink ? 'text-black' : 'text-white';
-  const borderCol = isPink ? 'border-stone-200' : 'border-white/10';
+  const isWhite = user?.theme === 'white';
+  const primaryColor = isWhite ? '#000000' : (isPink ? '#FF8DA1' : '#FFFFFF');
+  const primaryBg = isWhite ? 'bg-black' : (isPink ? 'bg-[#FF8DA1]' : 'bg-white');
+  const primaryText = isWhite ? 'text-white' : (isPink ? 'text-white' : 'text-black');
+  const cardBg = isWhite ? 'bg-white' : (isPink ? 'bg-[#3D171C]' : 'bg-black');
+  const textColor = isWhite ? 'text-black font-bold' : 'text-white';
+  const mutedText = isWhite ? 'text-black font-bold' : 'text-white/60';
+  const boldTextColor = isWhite ? 'text-black font-bold' : 'text-white';
+  const borderCol = isWhite ? 'border-stone-300' : (isPink ? 'border-white/5' : 'border-white/10');
 
   useEffect(() => {
     if (!user?.uid) return;
@@ -99,7 +103,24 @@ export default function Dashboard({ user, partner }: { user: any, partner: any }
   const monthStart = startOfMonth(now);
   const monthEnd = endOfMonth(now);
 
+  const filteredRecentExpenses = expenses
+    .filter(e => {
+      if (recentExpenseFilter === 'All') return true;
+      if (recentExpenseFilter === 'Me') return e.userId === user.uid;
+      if (recentExpenseFilter === 'Partner') return e.userId !== user.uid;
+      return true;
+    })
+    .slice(0, 5);
+
   const monthlyExpenses = expenses.filter(e => isWithinInterval(parseISO(e.date), { start: monthStart, end: monthEnd }));
+  
+  const filteredChartExpenses = monthlyExpenses.filter(e => {
+    if (chartFilter === 'Both') return true;
+    if (chartFilter === 'Me') return e.userId === user.uid;
+    if (chartFilter === 'Partner') return e.userId !== user.uid;
+    return true;
+  });
+
   const totalMonthly = monthlyExpenses.reduce((sum, e) => sum + e.amount, 0);
   const myMonthly = monthlyExpenses.filter(e => e.userId === user.uid).reduce((sum, e) => sum + e.amount, 0);
   const partnerMonthly = monthlyExpenses.filter(e => e.userId !== user.uid).reduce((sum, e) => sum + e.amount, 0);
@@ -113,19 +134,35 @@ export default function Dashboard({ user, partner }: { user: any, partner: any }
   const netBalance = totalOwedToMe - totalIOwe;
 
   const categoryData = Object.entries(
-    monthlyExpenses.reduce((acc: any, e) => {
+    filteredChartExpenses.reduce((acc: any, e) => {
       acc[e.category] = (acc[e.category] || 0) + e.amount;
       return acc;
     }, {})
   ).map(([name, value]) => ({ name, value }));
 
+  const userSplitData = [
+    { name: 'Me', value: myMonthly, color: isPink ? '#FF8DA1' : '#10b981' },
+    { name: partner?.name || 'Partner', value: partnerMonthly, color: '#ffffff' }
+  ];
+
+  const pieData = chartFilter === 'Both' ? userSplitData : categoryData;
+
   const dailyData = Object.entries(
     monthlyExpenses.reduce((acc: any, e) => {
       const day = format(parseISO(e.date), 'dd');
-      acc[day] = (acc[day] || 0) + e.amount;
+      if (!acc[day]) acc[day] = { me: 0, partner: 0 };
+      if (e.userId === user.uid) {
+        acc[day].me += e.amount;
+      } else {
+        acc[day].partner += e.amount;
+      }
       return acc;
     }, {})
-  ).map(([day, amount]) => ({ day, amount })).sort((a, b) => Number(a.day) - Number(b.day));
+  ).map(([day, data]: any) => ({ 
+    day, 
+    me: data.me, 
+    partner: data.partner 
+  })).sort((a, b) => Number(a.day) - Number(b.day));
 
   if (loading) return (
     <div className="h-full flex items-center justify-center">
@@ -140,13 +177,13 @@ export default function Dashboard({ user, partner }: { user: any, partner: any }
           <h2 className={`text-3xl font-bold tracking-tight ${textColor}`}>Financial Overview</h2>
           <div className="flex items-center gap-4 mt-2">
             <div className="flex items-center gap-2">
-              <div className={`w-2 h-2 rounded-full ${user?.status === 'online' ? 'bg-emerald-500 animate-pulse' : 'bg-stone-300'}`} />
+              <div className={`w-2 h-2 rounded-full ${user?.status === 'online' ? 'bg-emerald-500 animate-pulse' : 'bg-white/20'}`} />
               <span className={`text-xs font-bold ${boldTextColor}`}>Me: {user?.status === 'online' ? 'Online' : 'Offline'}</span>
             </div>
             {partner && (
               <div className="flex items-center gap-2">
-                <div className={`w-2 h-2 rounded-full ${partner?.status === 'online' ? 'bg-emerald-500 animate-pulse' : 'bg-stone-300'}`} />
-                <span className={`text-xs font-bold ${isPink ? 'bg-stone-900 text-white px-2 py-0.5 rounded' : boldTextColor}`}>
+                <div className={`w-2 h-2 rounded-full ${partner?.status === 'online' ? 'bg-emerald-500 animate-pulse' : 'bg-white/20'}`} />
+                <span className={`text-xs font-bold ${isPink ? 'bg-white/10 text-white px-2 py-0.5 rounded' : (isWhite ? 'text-black' : boldTextColor)}`}>
                   {partner.name}: {partner?.status === 'online' ? 'Online' : 'Offline'}
                 </span>
               </div>
@@ -171,6 +208,7 @@ export default function Dashboard({ user, partner }: { user: any, partner: any }
           textColor={textColor}
           mutedText={mutedText}
           borderCol={borderCol}
+          isWhite={isWhite}
         />
         <StatCard 
           title="My Share" 
@@ -181,6 +219,7 @@ export default function Dashboard({ user, partner }: { user: any, partner: any }
           textColor={textColor}
           mutedText={mutedText}
           borderCol={borderCol}
+          isWhite={isWhite}
         />
         <StatCard 
           title="Partner Share" 
@@ -191,6 +230,7 @@ export default function Dashboard({ user, partner }: { user: any, partner: any }
           textColor={textColor}
           mutedText={mutedText}
           borderCol={borderCol}
+          isWhite={isWhite}
         />
         <StatCard 
           title="Net Balance" 
@@ -202,17 +242,39 @@ export default function Dashboard({ user, partner }: { user: any, partner: any }
           mutedText={mutedText}
           borderCol={borderCol}
           isBalance
+          isWhite={isWhite}
         />
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <div className="flex flex-col gap-4">
+        <div className="flex items-center justify-between">
+          <h3 className={`text-xl font-bold ${textColor}`}>Spending Insights</h3>
+          <div className={`${isWhite ? 'bg-stone-100' : 'bg-white/5'} p-1 rounded-xl flex items-center gap-2`}>
+            {(['Me', 'Partner', 'Both'] as const).map((f) => (
+              <button
+                key={f}
+                onClick={() => setChartFilter(f)}
+                className={`px-4 py-1.5 text-xs font-bold rounded-lg transition-all ${
+                  chartFilter === f
+                    ? `${primaryBg} ${primaryText} shadow-sm`
+                    : `${isWhite ? 'text-stone-400 hover:text-stone-600' : 'text-white/40 hover:text-white/60'}`
+                }`}
+              >
+                {f}
+              </button>
+            ))}
+          </div>
+        </div>
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <div className={`${cardBg} p-8 rounded-3xl shadow-sm border ${borderCol} lg:col-span-1`}>
-          <h3 className={`text-lg font-bold mb-6 ${textColor}`}>Categories</h3>
+          <h3 className={`text-lg font-bold mb-6 ${textColor}`}>
+            {chartFilter === 'Both' ? 'User Split' : 'Categories'}
+          </h3>
           <div className="h-[300px]">
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
                 <Pie
-                  data={categoryData}
+                  data={pieData}
                   cx="50%"
                   cy="50%"
                   innerRadius={60}
@@ -220,31 +282,38 @@ export default function Dashboard({ user, partner }: { user: any, partner: any }
                   paddingAngle={5}
                   dataKey="value"
                 >
-                  {categoryData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={index === 0 ? primaryColor : COLORS[index % COLORS.length]} />
+                  {pieData.map((entry: any, index) => (
+                    <Cell 
+                      key={`cell-${index}`} 
+                      fill={entry.color || (chartFilter === 'Me' ? (isPink ? '#FF8DA1' : '#10b981') : chartFilter === 'Partner' ? '#ffffff' : COLORS[index % COLORS.length])} 
+                      stroke={entry.color === '#ffffff' || (chartFilter === 'Partner' && index === 0) ? '#ffffff20' : 'none'}
+                    />
                   ))}
                 </Pie>
                 <Tooltip 
                   contentStyle={{ 
-                    backgroundColor: isPink ? 'white' : '#1c1917', 
-                    borderColor: isPink ? '#e2e8f0' : '#292524',
-                    color: isPink ? 'black' : 'white',
+                    backgroundColor: isWhite ? 'white' : '#1c1917', 
+                    borderColor: isWhite ? '#e7e5e4' : '#292524',
+                    color: isWhite ? '#1c1917' : 'white',
                     borderRadius: '12px',
-                    border: isPink ? '1px solid #e2e8f0' : '1px solid #292524'
+                    border: '1px solid #292524'
                   }}
-                  itemStyle={{ color: isPink ? 'black' : 'white' }}
+                  itemStyle={{ color: isWhite ? '#1c1917' : 'white' }}
                 />
               </PieChart>
             </ResponsiveContainer>
           </div>
           <div className="mt-4 space-y-2">
-            {categoryData.slice(0, 4).map((cat, i) => (
-              <div key={cat.name} className="flex justify-between items-center text-sm">
+            {pieData.slice(0, 4).map((item: any, i) => (
+              <div key={item.name} className="flex justify-between items-center text-sm">
                 <div className="flex items-center gap-2">
-                  <div className="w-2 h-2 rounded-full" style={{ backgroundColor: i === 0 ? primaryColor : COLORS[i % COLORS.length] }} />
-                  <span className={mutedText}>{cat.name}</span>
+                  <div 
+                    className="w-2 h-2 rounded-full border border-white/20" 
+                    style={{ backgroundColor: item.color || (chartFilter === 'Me' ? '#000000' : chartFilter === 'Partner' ? '#ffffff' : COLORS[i % COLORS.length]) }} 
+                  />
+                  <span className={mutedText}>{item.name}</span>
                 </div>
-                <span className={`font-bold ${textColor}`}>₹{cat.value.toLocaleString()}</span>
+                <span className={`font-bold ${textColor}`}>₹{item.value.toLocaleString()}</span>
               </div>
             ))}
           </div>
@@ -252,30 +321,65 @@ export default function Dashboard({ user, partner }: { user: any, partner: any }
 
         <div className={`${cardBg} p-8 rounded-3xl shadow-sm border ${borderCol} lg:col-span-2`}>
           <h3 className={`text-lg font-bold mb-6 ${textColor}`}>Daily Spending Trend</h3>
-          <div className="h-[350px]">
+          <div className={`h-[350px] ${isWhite ? 'bg-stone-50' : 'bg-white/5'} rounded-2xl p-4 border ${borderCol}`}>
             <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={dailyData}>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={isPink ? "#e2e8f0" : "#ffffff10"} />
-                <XAxis dataKey="day" axisLine={false} tickLine={false} tick={{fill: isPink ? '#000000' : '#ffffff', fontSize: 12, fontWeight: 600}} />
-                <YAxis axisLine={false} tickLine={false} tick={{fill: isPink ? '#000000' : '#ffffff', fontSize: 12, fontWeight: 600}} />
+              <LineChart data={dailyData}>
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={isWhite ? '#e7e5e4' : '#ffffff10'} />
+                <XAxis 
+                  dataKey="day" 
+                  axisLine={false} 
+                  tickLine={false} 
+                  tick={{fill: isWhite ? '#000000' : 'rgba(255,255,255,0.4)', fontSize: 12, fontWeight: 700}} 
+                />
+                <YAxis 
+                  axisLine={false} 
+                  tickLine={false} 
+                  tick={{fill: isWhite ? '#000000' : 'rgba(255,255,255,0.4)', fontSize: 12, fontWeight: 700}} 
+                />
                 <Tooltip 
-                  cursor={{fill: isPink ? '#FF8DA120' : 'rgba(255,255,255,0.1)'}}
                   contentStyle={{ 
-                    backgroundColor: isPink ? 'white' : '#1c1917', 
-                    borderColor: isPink ? '#FF8DA1' : '#292524',
-                    color: isPink ? 'black' : 'white',
+                    backgroundColor: isWhite ? 'white' : (isPink ? '#3D171C' : '#1c1917'), 
+                    borderColor: isWhite ? '#e7e5e4' : 'rgba(255,255,255,0.1)',
+                    color: isWhite ? '#1c1917' : 'white',
                     borderRadius: '16px', 
-                    border: isPink ? '2px solid #FF8DA1' : '1px solid #292524', 
+                    border: '1px solid rgba(255,255,255,0.1)', 
                     boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)' 
                   }}
-                  itemStyle={{ color: isPink ? 'black' : 'white', fontWeight: 'bold' }}
+                  itemStyle={{ fontWeight: 'bold', color: isWhite ? '#1c1917' : 'white' }}
                 />
-                <Bar dataKey="amount" fill={primaryColor} radius={[6, 6, 0, 0]} />
-              </BarChart>
+                <Legend 
+                  verticalAlign="top" 
+                  height={36}
+                  formatter={(value) => <span className={`${isWhite ? 'text-black' : 'text-white/80'} font-bold text-xs uppercase tracking-wider`}>{value}</span>}
+                />
+                {(chartFilter === 'Me' || chartFilter === 'Both') && (
+                  <Line 
+                    type="monotone" 
+                    dataKey="me" 
+                    name="Me" 
+                    stroke={isWhite ? '#000000' : (isPink ? '#FF8DA1' : '#10b981')} 
+                    strokeWidth={4} 
+                    dot={{ r: 4, fill: isWhite ? '#000000' : (isPink ? '#FF8DA1' : '#10b981'), stroke: '#ffffff', strokeWidth: 2 }} 
+                    activeDot={{ r: 6, strokeWidth: 0 }} 
+                  />
+                )}
+                {(chartFilter === 'Partner' || chartFilter === 'Both') && (
+                  <Line 
+                    type="monotone" 
+                    dataKey="partner" 
+                    name={partner?.name || 'Partner'} 
+                    stroke={isWhite ? '#000000' : (isPink ? '#ffffff' : '#3b82f6')} 
+                    strokeWidth={4} 
+                    dot={{ r: 4, fill: isWhite ? '#000000' : (isPink ? '#ffffff' : '#3b82f6'), stroke: isPink ? '#FF8DA1' : '#ffffff', strokeWidth: 2 }} 
+                    activeDot={{ r: 6, strokeWidth: 0 }} 
+                  />
+                )}
+              </LineChart>
             </ResponsiveContainer>
           </div>
         </div>
       </div>
+    </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         <div className={`${cardBg} p-8 rounded-3xl shadow-sm border ${borderCol}`}>
@@ -284,7 +388,7 @@ export default function Dashboard({ user, partner }: { user: any, partner: any }
               <Target className="w-5 h-5 text-emerald-500" />
               Budget Status
             </h3>
-            <Link to="/budgets" className={`text-sm font-bold ${isPink ? 'text-pink-600' : 'text-stone-400'}`}>View All</Link>
+            <Link to="/budgets" className={`text-sm font-bold ${isPink ? 'text-[#FF8DA1]' : (isWhite ? 'text-black' : 'text-white/40')}`}>View All</Link>
           </div>
           <div className="space-y-6">
             {budgets.length === 0 ? (
@@ -299,7 +403,7 @@ export default function Dashboard({ user, partner }: { user: any, partner: any }
                       <span className={textColor}>{budget.category}</span>
                       <span className={mutedText}>₹{spent.toLocaleString()} / ₹{budget.amount.toLocaleString()}</span>
                     </div>
-                    <div className="h-2 bg-stone-100 rounded-full overflow-hidden">
+                    <div className="h-2 bg-white/5 rounded-full overflow-hidden">
                       <div 
                         className={`h-full ${percent > 90 ? 'bg-red-500' : 'bg-emerald-500'}`} 
                         style={{ width: `${percent}%` }}
@@ -318,7 +422,7 @@ export default function Dashboard({ user, partner }: { user: any, partner: any }
               <Heart className="w-5 h-5 text-red-500" />
               Wishlist Progress
             </h3>
-            <Link to="/wishlist" className={`text-sm font-bold ${isPink ? 'text-pink-600' : 'text-stone-400'}`}>View All</Link>
+            <Link to="/wishlist" className={`text-sm font-bold ${isPink ? 'text-[#FF8DA1]' : (isWhite ? 'text-black' : 'text-white/40')}`}>View All</Link>
           </div>
           <div className="space-y-6">
             {wishlist.length === 0 ? (
@@ -332,7 +436,7 @@ export default function Dashboard({ user, partner }: { user: any, partner: any }
                       <span className={textColor}>{item.title}</span>
                       <span className={mutedText}>{Math.round(percent)}%</span>
                     </div>
-                    <div className="h-2 bg-stone-100 rounded-full overflow-hidden">
+                    <div className="h-2 bg-white/5 rounded-full overflow-hidden">
                       <div 
                         className="h-full bg-blue-500" 
                         style={{ width: `${percent}%` }}
@@ -347,38 +451,60 @@ export default function Dashboard({ user, partner }: { user: any, partner: any }
       </div>
 
       <div className={`${cardBg} p-8 rounded-3xl shadow-sm border ${borderCol}`}>
-        <div className="flex justify-between items-center mb-6">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
           <h3 className={`text-xl font-bold ${textColor}`}>Recent Expenses</h3>
+          <div className={`${isWhite ? 'bg-stone-100' : 'bg-white/5'} p-1 rounded-xl flex items-center gap-2`}>
+            {(['All', 'Me', 'Partner'] as const).map((f) => (
+              <button
+                key={f}
+                onClick={() => setRecentExpenseFilter(f)}
+                className={`px-3 py-1 text-xs font-bold rounded-lg transition-all ${
+                  recentExpenseFilter === f
+                    ? `${primaryBg} ${isWhite ? 'text-white' : 'text-stone-900'} shadow-sm`
+                    : `${isWhite ? 'text-stone-400 hover:text-stone-600' : 'text-white/40 hover:text-white/60'}`
+                }`}
+              >
+                {f}
+              </button>
+            ))}
+          </div>
           <Link 
             to="/expenses" 
-            className={`flex items-center gap-2 text-sm font-bold ${isPink ? 'text-pink-600 hover:text-pink-700' : 'text-stone-400 hover:text-white'} transition-colors`}
+            className={`flex items-center gap-2 text-sm font-bold ${isPink ? 'text-[#FF8DA1] hover:text-[#FF8DA1]/80' : (isWhite ? 'text-black hover:opacity-80' : 'text-white/40 hover:text-white')} transition-colors`}
           >
             View All
             <ArrowRight className="w-4 h-4" />
           </Link>
         </div>
         <div className="space-y-4">
-          {expenses.slice(0, 5).map((expense) => (
+          {filteredRecentExpenses.map((expense) => (
             <div 
               key={expense.id} 
-              className={`flex items-center justify-between p-4 rounded-2xl border ${borderCol} ${isPink ? 'hover:bg-stone-50' : 'hover:bg-white/5'} transition-all`}
+              className={`flex items-center justify-between p-4 rounded-2xl border ${borderCol} hover:bg-white/5 transition-all`}
             >
               <div className="flex items-center gap-4">
-                <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${isPink ? 'bg-pink-50 text-pink-500' : 'bg-white/10 text-stone-400'}`}>
+                <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${isPink ? 'bg-[#FF8DA1]/10 text-[#FF8DA1]' : 'bg-white/10 text-white/40'}`}>
                   <Receipt className="w-5 h-5" />
                 </div>
                 <div>
-                  <p className={`font-bold ${textColor}`}>{expense.paidTo || expense.paid_to}</p>
+                  <p className={`font-bold ${textColor}`}>
+                    {expense.paidTo || expense.paid_to}
+                    {expense.mealType && (
+                      <span className={`ml-2 text-[10px] px-1.5 py-0.5 rounded-md ${isPink ? 'bg-[#FF8DA1]/20 text-[#FF8DA1]' : 'bg-white/10 text-white/40'}`}>
+                        {expense.mealType}
+                      </span>
+                    )}
+                  </p>
                   <p className={`text-xs ${mutedText}`}>{format(parseISO(expense.date), 'MMM dd, yyyy')} • {expense.category}</p>
                 </div>
               </div>
               <div className="text-right">
-                <p className={`font-bold ${isPink ? 'text-pink-600' : 'text-white'}`}>₹{expense.amount.toLocaleString()}</p>
+                <p className={`font-bold ${isPink ? 'text-[#FF8DA1]' : 'text-white'}`}>₹{expense.amount.toLocaleString()}</p>
                 <p className={`text-[10px] ${mutedText}`}>Paid by {expense.paidBy || expense.paid_by}</p>
               </div>
             </div>
           ))}
-          {expenses.length === 0 && (
+          {filteredRecentExpenses.length === 0 && (
             <div className={`text-center py-8 ${mutedText}`}>
               No expenses recorded yet.
             </div>

@@ -1,1 +1,17 @@
 @import "tailwindcss";
+
+@layer base {
+  * {
+    color: white !important;
+  }
+  
+  /* Ensure inputs and selects also have white text */
+  input, select, textarea {
+    color: white !important;
+  }
+
+  /* Placeholder color */
+  ::placeholder {
+    color: rgba(255, 255, 255, 0.5) !important;
+  }
+}

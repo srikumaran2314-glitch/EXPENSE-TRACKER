@@ -12,12 +12,14 @@ export default function TodoList({ user }: { user: any }) {
   const [priority, setPriority] = useState('Medium');
 
   const isPink = user?.gender === 'Female';
-  const primaryColor = isPink ? 'bg-[#FF8DA1]' : 'bg-black';
-  const cardBg = isPink ? 'bg-white' : 'bg-stone-900';
-  const borderCol = isPink ? 'border-stone-200' : 'border-white/10';
-  const textColor = isPink ? 'text-black' : 'text-white';
-  const mutedText = isPink ? 'text-stone-600' : 'text-stone-400';
-  const boldTextColor = isPink ? 'text-black' : 'text-white';
+  const isWhite = user?.theme === 'white';
+  const primaryColor = isWhite ? 'bg-black' : (isPink ? 'bg-[#FF8DA1]' : 'bg-white');
+  const primaryText = isWhite ? 'text-white' : (isPink ? 'text-white' : 'text-black');
+  const cardBg = isWhite ? 'bg-white' : (isPink ? 'bg-[#3D171C]' : 'bg-black');
+  const borderCol = isWhite ? 'border-stone-300' : (isPink ? 'border-white/5' : 'border-white/10');
+  const textColor = isWhite ? 'text-black font-bold' : 'text-white';
+  const mutedText = isWhite ? 'text-black font-bold' : 'text-white/60';
+  const boldTextColor = isWhite ? 'text-black font-bold' : 'text-white';
 
   useEffect(() => {
     if (!user) return;
@@ -102,14 +104,14 @@ export default function TodoList({ user }: { user: any }) {
           <input
             type="text"
             placeholder="What needs to be done?"
-            className={`flex-1 px-6 py-4 rounded-2xl border ${borderCol} ${isPink ? 'bg-stone-50' : 'bg-stone-800'} focus:ring-2 focus:ring-blue-500 outline-none ${textColor} font-medium`}
+            className={`flex-1 px-6 py-4 rounded-2xl border ${borderCol} ${isPink ? 'bg-white/5' : 'bg-stone-800'} focus:ring-2 focus:ring-blue-500 outline-none ${textColor} font-medium`}
             value={newTask}
             onChange={(e) => setNewTask(e.target.value)}
           />
           <button
             type="submit"
             disabled={!newTask.trim()}
-            className={`px-8 py-4 ${primaryColor} text-white rounded-2xl font-bold hover:opacity-90 transition-all disabled:opacity-50 shadow-lg`}
+            className={`px-8 py-4 ${primaryColor} ${primaryText} rounded-2xl font-bold hover:opacity-90 transition-all disabled:opacity-50 shadow-lg`}
           >
             Add Task
           </button>
@@ -119,7 +121,7 @@ export default function TodoList({ user }: { user: any }) {
             <Calendar className={`w-4 h-4 ${mutedText}`} />
             <input
               type="date"
-              className={`px-3 py-2 rounded-xl border ${borderCol} ${isPink ? 'bg-stone-50' : 'bg-stone-800'} text-sm ${textColor} outline-none`}
+              className={`px-3 py-2 rounded-xl border ${borderCol} ${isPink ? 'bg-white/5' : 'bg-stone-800'} text-sm ${textColor} outline-none`}
               value={dueDate}
               onChange={(e) => setDueDate(e.target.value)}
             />
@@ -127,7 +129,7 @@ export default function TodoList({ user }: { user: any }) {
           <div className="flex items-center gap-2">
             <Flag className={`w-4 h-4 ${mutedText}`} />
             <select
-              className={`px-3 py-2 rounded-xl border ${borderCol} ${isPink ? 'bg-stone-50' : 'bg-stone-800'} text-sm ${textColor} outline-none`}
+              className={`px-3 py-2 rounded-xl border ${borderCol} ${isPink ? 'bg-white/5' : 'bg-stone-800'} text-sm ${textColor} outline-none`}
               value={priority}
               onChange={(e) => setPriority(e.target.value)}
             >
@@ -150,17 +152,17 @@ export default function TodoList({ user }: { user: any }) {
           >
             <button
               onClick={() => toggleTodo(todo)}
-              className={`p-1 rounded-lg transition-all ${todo.isCompleted ? 'text-emerald-500' : 'text-stone-400 hover:text-blue-500'}`}
+              className={`p-1 rounded-lg transition-all ${todo.isCompleted ? 'text-emerald-500' : `${mutedText} hover:text-blue-500`}`}
             >
               {todo.isCompleted ? <CheckSquare className="w-6 h-6" /> : <Square className="w-6 h-6" />}
             </button>
             <div className="flex-1 min-w-0">
-              <p className={`font-medium ${todo.isCompleted ? 'line-through text-stone-400' : textColor}`}>
+              <p className={`font-medium ${todo.isCompleted ? `line-through ${mutedText}` : textColor}`}>
                 {todo.task}
               </p>
               <div className="flex items-center gap-3 mt-1">
                 {todo.dueDate && (
-                  <span className={`flex items-center gap-1 text-[10px] font-bold uppercase ${isOverdue(todo.dueDate) && !todo.isCompleted ? 'text-red-500' : 'text-stone-400'}`}>
+                  <span className={`flex items-center gap-1 text-[10px] font-bold uppercase ${isOverdue(todo.dueDate) && !todo.isCompleted ? 'text-red-500' : mutedText}`}>
                     <Clock className="w-3 h-3" />
                     {format(parseISO(todo.dueDate), 'MMM dd')}
                     {isOverdue(todo.dueDate) && !todo.isCompleted && ' (Overdue)'}
@@ -177,7 +179,7 @@ export default function TodoList({ user }: { user: any }) {
             </div>
             <button
               onClick={() => deleteTodo(todo.id)}
-              className="p-2 text-stone-400 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all opacity-0 group-hover:opacity-100"
+              className={`p-2 ${mutedText} hover:text-red-500 hover:bg-red-500/10 rounded-xl transition-all opacity-0 group-hover:opacity-100`}
             >
               <Trash2 className="w-5 h-5" />
             </button>
@@ -185,7 +187,7 @@ export default function TodoList({ user }: { user: any }) {
         ))}
         {todos.length === 0 && (
           <div className="text-center py-12">
-            <ListTodo className="w-12 h-12 text-stone-200 mx-auto mb-4" />
+            <ListTodo className="w-12 h-12 text-white/20 mx-auto mb-4" />
             <p className={mutedText}>No tasks yet. Add something to get started!</p>
           </div>
         )}

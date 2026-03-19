@@ -185,7 +185,7 @@ service cloud.firestore {
 
     match /expenses/{expenseId} {
       allow read: if isAuthenticated() && (isOwner(resource.data.userId) || isOwner(resource.data.partnerId) || isAdmin());
-      allow create: if isAuthenticated() && isOwner(request.resource.data.userId) && isValidExpense(request.resource.data);
+      allow create: if isAuthenticated() && (isOwner(request.resource.data.userId) || isOwner(request.resource.data.partnerId)) && isValidExpense(request.resource.data);
       allow update: if isAuthenticated() && (isOwner(resource.data.userId) || isOwner(resource.data.partnerId) || isAdmin()) && 
                       isValidExpense(request.resource.data) &&
                       request.resource.data.userId == resource.data.userId &&

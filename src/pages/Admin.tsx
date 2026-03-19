@@ -54,87 +54,94 @@ export default function Admin({ user }: { user: any }) {
     fetchStats();
   }, []);
 
-  if (loading) return <div>Loading admin dashboard...</div>;
+  const isWhite = user?.theme === 'white';
+  const textColor = isWhite ? 'text-black font-bold' : 'text-white';
+  const mutedText = isWhite ? 'text-black font-bold' : 'text-white/60';
+  const cardBg = isWhite ? 'bg-white' : 'bg-black';
+  const borderCol = isWhite ? 'border-stone-300' : 'border-white/10';
+
+  if (loading) return <div className={`h-full flex items-center justify-center ${textColor}`}>Loading admin dashboard...</div>;
 
   return (
     <div className="space-y-8">
       <div className="flex justify-between items-center">
         <div>
-          <h2 className="text-2xl font-bold flex items-center gap-2">
-            <ShieldCheck className="w-7 h-7 text-emerald-600" />
+          <h2 className={`text-2xl font-bold flex items-center gap-2 ${textColor}`}>
+            <ShieldCheck className="w-7 h-7 text-emerald-500" />
             Admin Control Panel
           </h2>
-          <p className="text-stone-500">System-wide analytics and management</p>
+          <p className={mutedText}>System-wide analytics and management</p>
         </div>
         <div className="flex gap-3">
-          <button className="px-4 py-2 bg-white border border-stone-200 rounded-xl text-sm font-bold hover:bg-stone-50 transition-all">
+          <button className={`px-4 py-2 ${isWhite ? 'bg-stone-100 border-stone-300' : 'bg-white/5 border-white/10'} border rounded-xl text-sm font-bold ${textColor} hover:bg-white/10 transition-all`}>
             Export Logs
           </button>
-          <button className="px-4 py-2 bg-emerald-600 text-white rounded-xl text-sm font-bold hover:bg-emerald-700 transition-all shadow-lg shadow-emerald-100">
+          <button className="px-4 py-2 bg-emerald-600 text-white rounded-xl text-sm font-bold hover:bg-emerald-700 transition-all shadow-lg shadow-emerald-900/20">
             System Settings
           </button>
         </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="bg-white p-6 rounded-3xl shadow-sm border border-stone-100">
+        <div className={`${cardBg} p-6 rounded-3xl shadow-sm border ${borderCol}`}>
           <div className="flex justify-between items-start mb-4">
-            <div className="p-3 bg-blue-50 rounded-2xl">
-              <Users className="w-6 h-6 text-blue-600" />
+            <div className="p-3 bg-blue-500/10 rounded-2xl">
+              <Users className="w-6 h-6 text-blue-400" />
             </div>
-            <span className="flex items-center text-xs font-bold text-emerald-600 bg-emerald-50 px-2 py-1 rounded-full">
+            <span className="flex items-center text-xs font-bold text-emerald-400 bg-emerald-500/10 px-2 py-1 rounded-full">
               <ArrowUpRight className="w-3 h-3 mr-1" />
               12%
             </span>
           </div>
-          <p className="text-sm text-stone-500 font-medium">Total Active Users</p>
-          <h3 className="text-3xl font-bold mt-1">{stats.totalUsers}</h3>
+          <p className={`text-sm ${mutedText} font-medium`}>Total Active Users</p>
+          <h3 className={`text-3xl font-bold mt-1 ${textColor}`}>{stats.totalUsers}</h3>
         </div>
 
-        <div className="bg-white p-6 rounded-3xl shadow-sm border border-stone-100">
+        <div className={`${cardBg} p-6 rounded-3xl shadow-sm border ${borderCol}`}>
           <div className="flex justify-between items-start mb-4">
-            <div className="p-3 bg-emerald-50 rounded-2xl">
-              <IndianRupee className="w-6 h-6 text-emerald-600" />
+            <div className="p-3 bg-emerald-500/10 rounded-2xl">
+              <IndianRupee className="w-6 h-6 text-emerald-400" />
             </div>
-            <span className="flex items-center text-xs font-bold text-emerald-600 bg-emerald-50 px-2 py-1 rounded-full">
+            <span className="flex items-center text-xs font-bold text-emerald-400 bg-emerald-500/10 px-2 py-1 rounded-full">
               <ArrowUpRight className="w-3 h-3 mr-1" />
               8%
             </span>
           </div>
-          <p className="text-sm text-stone-500 font-medium">Total Expenses Tracked</p>
-          <h3 className="text-3xl font-bold mt-1">₹{stats.totalExpenses.toLocaleString()}</h3>
+          <p className={`text-sm ${mutedText} font-medium`}>Total Expenses Tracked</p>
+          <h3 className={`text-3xl font-bold mt-1 ${textColor}`}>₹{stats.totalExpenses.toLocaleString()}</h3>
         </div>
 
-        <div className="bg-white p-6 rounded-3xl shadow-sm border border-stone-100">
+        <div className={`${cardBg} p-6 rounded-3xl shadow-sm border ${borderCol}`}>
           <div className="flex justify-between items-start mb-4">
-            <div className="p-3 bg-amber-50 rounded-2xl">
-              <Activity className="w-6 h-6 text-amber-600" />
+            <div className="p-3 bg-amber-500/10 rounded-2xl">
+              <Activity className="w-6 h-6 text-amber-400" />
             </div>
-            <span className="flex items-center text-xs font-bold text-red-600 bg-red-50 px-2 py-1 rounded-full">
+            <span className="flex items-center text-xs font-bold text-red-400 bg-red-500/10 px-2 py-1 rounded-full">
               <ArrowDownRight className="w-3 h-3 mr-1" />
               2%
             </span>
           </div>
-          <p className="text-sm text-stone-500 font-medium">System Uptime</p>
-          <h3 className="text-3xl font-bold mt-1">99.9%</h3>
+          <p className={`text-sm ${mutedText} font-medium`}>System Uptime</p>
+          <h3 className={`text-3xl font-bold mt-1 ${textColor}`}>99.9%</h3>
         </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        <div className="bg-white p-8 rounded-3xl shadow-sm border border-stone-100">
-          <h3 className="text-lg font-bold mb-6 flex items-center gap-2">
-            <PieChartIcon className="w-5 h-5 text-stone-400" />
+        <div className={`${cardBg} p-8 rounded-3xl shadow-sm border ${borderCol}`}>
+          <h3 className={`text-lg font-bold mb-6 flex items-center gap-2 ${textColor}`}>
+            <PieChartIcon className="w-5 h-5 text-white/40" />
             Popular Categories
           </h3>
           <div className="h-[300px]">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={stats.popularCategories} layout="vertical">
-                <CartesianGrid strokeDasharray="3 3" horizontal={true} vertical={false} stroke="#f1f5f9" />
+                <CartesianGrid strokeDasharray="3 3" horizontal={true} vertical={false} stroke={isWhite ? '#e7e5e4' : '#ffffff10'} />
                 <XAxis type="number" hide />
-                <YAxis dataKey="category" type="category" axisLine={false} tickLine={false} tick={{fill: '#64748b', fontSize: 12}} width={100} />
+                <YAxis dataKey="category" type="category" axisLine={false} tickLine={false} tick={{fill: isWhite ? '#000000' : 'rgba(255,255,255,0.4)', fontSize: 12, fontWeight: 700}} width={100} />
                 <Tooltip 
-                  cursor={{fill: '#f8fafc'}}
-                  contentStyle={{borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)'}}
+                  cursor={{fill: isWhite ? '#f5f5f4' : '#ffffff05'}}
+                  contentStyle={{backgroundColor: isWhite ? 'white' : '#1c1917', borderRadius: '12px', border: isWhite ? '1px solid #e7e5e4' : '1px solid rgba(255,255,255,0.1)', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.3)', color: isWhite ? 'black' : 'white'}}
+                  itemStyle={{color: isWhite ? 'black' : 'white', fontWeight: 'bold'}}
                 />
                 <Bar dataKey="count" radius={[0, 4, 4, 0]}>
                   {stats.popularCategories.map((entry: any, index: number) => (
@@ -146,36 +153,36 @@ export default function Admin({ user }: { user: any }) {
           </div>
         </div>
 
-        <div className="bg-white p-8 rounded-3xl shadow-sm border border-stone-100">
-          <h3 className="text-lg font-bold mb-6 flex items-center gap-2">
-            <Settings className="w-5 h-5 text-stone-400" />
+        <div className={`${cardBg} p-8 rounded-3xl shadow-sm border ${borderCol}`}>
+          <h3 className={`text-lg font-bold mb-6 flex items-center gap-2 ${textColor}`}>
+            <Settings className={`w-5 h-5 ${isWhite ? 'text-black' : 'text-stone-400'}`} />
             System Controls
           </h3>
           <div className="space-y-4">
-            <div className="flex items-center justify-between p-4 bg-stone-50 rounded-2xl border border-stone-100">
+            <div className={`flex items-center justify-between p-4 ${isWhite ? 'bg-stone-50' : 'bg-white/5'} rounded-2xl border ${borderCol}`}>
               <div>
-                <p className="font-bold text-sm">Receipt Uploads</p>
-                <p className="text-xs text-stone-500">Allow users to upload receipt images</p>
+                <p className={`font-bold text-sm ${textColor}`}>Receipt Uploads</p>
+                <p className={`text-xs ${mutedText}`}>Allow users to upload receipt images</p>
               </div>
               <div className="w-12 h-6 bg-emerald-500 rounded-full relative">
                 <div className="absolute right-1 top-1 w-4 h-4 bg-white rounded-full shadow-sm"></div>
               </div>
             </div>
-            <div className="flex items-center justify-between p-4 bg-stone-50 rounded-2xl border border-stone-100">
+            <div className={`flex items-center justify-between p-4 ${isWhite ? 'bg-stone-50' : 'bg-white/5'} rounded-2xl border ${borderCol}`}>
               <div>
-                <p className="font-bold text-sm">Partner Linking</p>
-                <p className="text-xs text-stone-500">Allow users to link with partners</p>
+                <p className={`font-bold text-sm ${textColor}`}>Partner Linking</p>
+                <p className={`text-xs ${mutedText}`}>Allow users to link with partners</p>
               </div>
               <div className="w-12 h-6 bg-emerald-500 rounded-full relative">
                 <div className="absolute right-1 top-1 w-4 h-4 bg-white rounded-full shadow-sm"></div>
               </div>
             </div>
-            <div className="flex items-center justify-between p-4 bg-stone-50 rounded-2xl border border-stone-100">
+            <div className={`flex items-center justify-between p-4 ${isWhite ? 'bg-stone-50' : 'bg-white/5'} rounded-2xl border ${borderCol}`}>
               <div>
-                <p className="font-bold text-sm">Maintenance Mode</p>
-                <p className="text-xs text-stone-500">Disable all user interactions</p>
+                <p className={`font-bold text-sm ${textColor}`}>Maintenance Mode</p>
+                <p className={`text-xs ${mutedText}`}>Disable all user interactions</p>
               </div>
-              <div className="w-12 h-6 bg-stone-200 rounded-full relative">
+              <div className="w-12 h-6 bg-white/10 rounded-full relative">
                 <div className="absolute left-1 top-1 w-4 h-4 bg-white rounded-full shadow-sm"></div>
               </div>
             </div>
