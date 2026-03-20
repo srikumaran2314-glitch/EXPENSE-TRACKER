@@ -17,13 +17,13 @@ export default function Profile({ user }: { user: any }) {
   const isWhite = currentTheme === 'light';
   const isDark = currentTheme === 'dark';
 
-  const primaryColor = 'bg-black';
-  const primaryText = 'text-white';
+  const primaryColor = isWhite ? 'bg-black text-white shadow-lg' : (isPink ? 'bg-black text-white shadow-lg' : 'bg-white/10 backdrop-blur-md border border-white/30 shadow-[0_0_20px_rgba(255,255,255,0.15)] ring-1 ring-white/20');
+  const primaryText = isPink ? 'text-black' : 'text-white';
   const cardBg = isWhite ? 'bg-white' : (isPink ? 'bg-[#FF8DA1]' : 'bg-[#1e1e1e]');
-  const borderCol = isWhite ? 'border-stone-200' : (isPink ? 'border-white/20' : 'border-white/10');
-  const textColor = isWhite ? 'text-black font-bold' : 'text-white';
-  const mutedText = isWhite ? 'text-black font-bold' : 'text-white/60';
-  const boldTextColor = isWhite ? 'text-black font-bold' : 'text-white';
+  const borderCol = isWhite ? 'border-stone-200' : (isPink ? 'border-black/10' : 'border-white/10');
+  const textColor = isWhite ? 'text-black font-bold' : (isPink ? 'text-black font-bold' : 'text-white');
+  const mutedText = isWhite ? 'text-black font-bold' : (isPink ? 'text-black/60 font-bold' : 'text-white/60');
+  const boldTextColor = isWhite ? 'text-black font-bold' : (isPink ? 'text-black font-bold' : 'text-white');
 
   const copyToClipboard = () => {
     navigator.clipboard.writeText(user.partnerCode);
@@ -90,30 +90,30 @@ export default function Profile({ user }: { user: any }) {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
         <div className="md:col-span-1 space-y-6">
           <div className={`${cardBg} p-8 rounded-3xl shadow-sm border ${borderCol} text-center`}>
-            <div className={`w-24 h-24 ${isPink ? 'bg-white/20 text-white' : 'bg-emerald-500/20 text-emerald-400'} rounded-full flex items-center justify-center text-3xl font-bold mx-auto mb-4`}>
+            <div className={`w-24 h-24 ${isPink ? 'bg-black/10 text-black' : (isWhite ? 'bg-stone-100 text-black' : 'bg-emerald-500/20 text-emerald-400')} rounded-full flex items-center justify-center text-3xl font-bold mx-auto mb-4`}>
               {user.name[0]}
             </div>
             <h3 className={`text-xl font-bold ${boldTextColor}`}>{user.name}</h3>
             <p className={`${mutedText} text-sm`}>{user.email}</p>
             
             <div className="mt-6 space-y-2">
-              <p className="text-xs font-bold text-white/40 uppercase">Theme Preference</p>
+              <p className={`text-xs font-bold ${isPink ? 'text-black/40' : 'text-white/40'} uppercase`}>Theme Preference</p>
               <div className="flex gap-2 justify-center">
                 <button
                   onClick={() => handleUpdateTheme('dark')}
-                  className={`px-3 py-1 rounded-full text-xs font-bold border transition-all bg-black text-white border-white/20`}
+                  className={`px-3 py-1 rounded-full text-xs font-bold border transition-all ${currentTheme === 'dark' ? 'bg-white text-black border-white' : 'bg-black text-white border-white/20'}`}
                 >
                   Black
                 </button>
                 <button
                   onClick={() => handleUpdateTheme('pink')}
-                  className={`px-3 py-1 rounded-full text-xs font-bold border transition-all bg-black text-white border-white/20`}
+                  className={`px-3 py-1 rounded-full text-xs font-bold border transition-all ${currentTheme === 'pink' ? 'bg-black text-white border-black' : 'bg-black/10 text-black border-black/10'}`}
                 >
                   Pink
                 </button>
                 <button
                   onClick={() => handleUpdateTheme('light')}
-                  className={`px-3 py-1 rounded-full text-xs font-bold border transition-all bg-black text-white border-white/20`}
+                  className={`px-3 py-1 rounded-full text-xs font-bold border transition-all ${currentTheme === 'light' ? 'bg-black text-white border-black' : 'bg-white text-black border-stone-200'}`}
                 >
                   White
                 </button>
@@ -122,7 +122,7 @@ export default function Profile({ user }: { user: any }) {
 
             <button 
               onClick={() => setIsEditing(true)}
-              className="mt-6 px-4 py-2 bg-black text-white text-sm font-bold rounded-xl hover:opacity-90 transition-all shadow-sm"
+              className={`mt-6 px-4 py-2 ${isWhite ? 'bg-black text-white' : (isPink ? 'bg-black text-white shadow-lg' : 'bg-white/10 backdrop-blur-md border border-white/30 text-white shadow-[0_0_15px_rgba(255,255,255,0.1)]')} text-sm font-bold rounded-xl hover:opacity-80 transition-all`}
             >
               Edit Profile
             </button>

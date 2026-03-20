@@ -21,13 +21,13 @@ export default function Wishlist({ user }: { user: any }) {
   const isWhite = currentTheme === 'light';
   const isDark = currentTheme === 'dark';
 
-  const primaryColor = 'bg-black';
-  const primaryText = 'text-white';
+  const primaryColor = isWhite ? 'bg-black text-white shadow-lg' : (isPink ? 'bg-black text-white shadow-lg' : 'bg-white/10 backdrop-blur-md border border-white/30 shadow-[0_0_20px_rgba(255,255,255,0.15)] ring-1 ring-white/20');
+  const primaryText = isPink ? 'text-black' : 'text-white';
   const cardBg = isWhite ? 'bg-white' : (isPink ? 'bg-[#FF8DA1]' : 'bg-[#1e1e1e]');
-  const borderCol = isWhite ? 'border-stone-200' : (isPink ? 'border-white/20' : 'border-white/10');
-  const textColor = isWhite ? 'text-black font-bold' : 'text-white';
-  const mutedText = isWhite ? 'text-black font-bold' : 'text-white/60';
-  const boldTextColor = isWhite ? 'text-black font-bold' : 'text-white';
+  const borderCol = isWhite ? 'border-stone-200' : (isPink ? 'border-black/10' : 'border-white/10');
+  const textColor = isWhite ? 'text-black font-bold' : (isPink ? 'text-black font-bold' : 'text-white');
+  const mutedText = isWhite ? 'text-black font-bold' : (isPink ? 'text-black/60 font-bold' : 'text-white/60');
+  const boldTextColor = isWhite ? 'text-black font-bold' : (isPink ? 'text-black font-bold' : 'text-white');
 
   useEffect(() => {
     if (!user) return;
@@ -127,7 +127,7 @@ export default function Wishlist({ user }: { user: any }) {
         </div>
         <button
           onClick={() => setShowAddModal(true)}
-          className={`flex items-center gap-2 px-6 py-3 ${primaryColor} ${primaryText} rounded-2xl font-bold hover:opacity-90 transition-all shadow-lg`}
+          className={`flex items-center gap-2 px-6 py-3 ${isWhite ? 'bg-black text-white' : 'bg-white/10 backdrop-blur-md border border-white/30 text-white shadow-[0_0_20px_rgba(255,255,255,0.15)] ring-1 ring-white/20'} rounded-2xl font-bold hover:opacity-80 transition-all`}
         >
           <Plus className="w-5 h-5" />
           Add Item
@@ -189,11 +189,11 @@ export default function Wishlist({ user }: { user: any }) {
                     ₹{item.savedAmount.toLocaleString()} / ₹{item.estimatedAmount.toLocaleString()}
                   </span>
                 </div>
-                <div className="h-2 bg-white/5 rounded-full overflow-hidden">
+                <div className={`h-2 ${isPink ? 'bg-black/10' : 'bg-white/5'} rounded-full overflow-hidden`}>
                   <motion.div
                     initial={{ width: 0 }}
                     animate={{ width: `${Math.min((item.savedAmount / item.estimatedAmount) * 100, 100)}%` }}
-                    className={`h-full ${item.isCompleted ? 'bg-emerald-500' : 'bg-blue-500'}`}
+                    className={`h-full ${item.isCompleted ? 'bg-emerald-500' : (isPink ? 'bg-black' : 'bg-blue-500')}`}
                   />
                 </div>
               </div>

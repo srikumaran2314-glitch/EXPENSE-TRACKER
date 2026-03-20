@@ -20,13 +20,13 @@ export default function Budgets({ user }: { user: any }) {
   const isWhite = currentTheme === 'light';
   const isDark = currentTheme === 'dark';
 
-  const primaryColor = 'bg-black';
-  const primaryText = 'text-white';
+  const primaryColor = isWhite ? 'bg-black text-white shadow-lg' : (isPink ? 'bg-black text-white shadow-lg' : 'bg-white/10 backdrop-blur-md border border-white/30 shadow-[0_0_20px_rgba(255,255,255,0.15)] ring-1 ring-white/20');
+  const primaryText = isPink ? 'text-black' : 'text-white';
   const cardBg = isWhite ? 'bg-white' : (isPink ? 'bg-[#FF8DA1]' : 'bg-[#1e1e1e]');
-  const borderCol = isWhite ? 'border-stone-200' : (isPink ? 'border-white/20' : 'border-white/10');
-  const textColor = isWhite ? 'text-black font-bold' : 'text-white';
-  const mutedText = isWhite ? 'text-black font-bold' : 'text-white/60';
-  const boldTextColor = isWhite ? 'text-black font-bold' : 'text-white';
+  const borderCol = isWhite ? 'border-stone-200' : (isPink ? 'border-black/10' : 'border-white/10');
+  const textColor = isWhite ? 'text-black font-bold' : (isPink ? 'text-black font-bold' : 'text-white');
+  const mutedText = isWhite ? 'text-black font-bold' : (isPink ? 'text-black/60 font-bold' : 'text-white/60');
+  const boldTextColor = isWhite ? 'text-black font-bold' : (isPink ? 'text-black font-bold' : 'text-white');
 
   const categories = [
     'Food & Dining', 'Shopping', 'Transportation', 'Entertainment',
@@ -120,7 +120,7 @@ export default function Budgets({ user }: { user: any }) {
           <div className={`flex items-center gap-2 ${cardBg} p-1 rounded-xl border ${borderCol}`}>
             <button
               onClick={() => setCurrentMonth(subMonths(currentMonth, 1))}
-              className={`p-2 bg-black text-white rounded-lg transition-all shadow-sm`}
+              className={`p-2 ${isWhite ? 'bg-black text-white' : 'bg-white/10 backdrop-blur-md border border-white/30 text-white shadow-[0_0_10px_rgba(255,255,255,0.1)]'} rounded-lg transition-all hover:opacity-80`}
             >
               <ChevronLeft className="w-5 h-5" />
             </button>
@@ -129,14 +129,14 @@ export default function Budgets({ user }: { user: any }) {
             </span>
             <button
               onClick={() => setCurrentMonth(addMonths(currentMonth, 1))}
-              className={`p-2 bg-black text-white rounded-lg transition-all shadow-sm`}
+              className={`p-2 ${isWhite ? 'bg-black text-white' : 'bg-white/10 backdrop-blur-md border border-white/30 text-white shadow-[0_0_10px_rgba(255,255,255,0.1)]'} rounded-lg transition-all hover:opacity-80`}
             >
               <ChevronRight className="w-5 h-5" />
             </button>
           </div>
           <button
             onClick={() => setShowAddModal(true)}
-            className={`flex items-center gap-2 px-6 py-3 ${primaryColor} ${primaryText} rounded-2xl font-bold hover:opacity-90 transition-all shadow-lg`}
+            className={`flex items-center gap-2 px-6 py-3 ${isWhite ? 'bg-black text-white' : 'bg-white/10 backdrop-blur-md border border-white/30 text-white shadow-[0_0_20px_rgba(255,255,255,0.15)] ring-1 ring-white/20'} rounded-2xl font-bold hover:opacity-80 transition-all`}
           >
             <Plus className="w-5 h-5" />
             Set Budget
@@ -207,14 +207,14 @@ export default function Budgets({ user }: { user: any }) {
                     </span>
                     <span className={mutedText}>{Math.round(percent)}%</span>
                   </div>
-                  <div className="h-3 bg-white/5 rounded-full overflow-hidden">
+                  <div className={`h-3 ${isPink ? 'bg-black/10' : 'bg-white/5'} rounded-full overflow-hidden`}>
                     <motion.div
                       initial={{ width: 0 }}
                       animate={{ width: `${percent}%` }}
                       className={`h-full transition-colors ${
                         percent > 90 ? 'bg-red-500' :
                         percent > 70 ? 'bg-orange-500' :
-                        'bg-emerald-500'
+                        (isPink ? 'bg-black' : 'bg-emerald-500')
                       }`}
                     />
                   </div>
@@ -275,7 +275,7 @@ export default function Budgets({ user }: { user: any }) {
                   <button
                     type="button"
                     onClick={() => setShowAddModal(false)}
-                    className={`flex-1 py-4 rounded-xl font-bold ${isPink ? 'bg-white/5 text-white/60' : 'bg-white/5 text-stone-400'} hover:opacity-80 transition-all`}
+                    className={`flex-1 py-4 rounded-xl font-bold ${isPink ? 'bg-black/10 text-black/60' : 'bg-white/5 text-stone-400'} hover:opacity-80 transition-all`}
                   >
                     Cancel
                   </button>

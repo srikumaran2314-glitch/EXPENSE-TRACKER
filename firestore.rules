@@ -164,6 +164,13 @@ service cloud.firestore {
              (!('createdAt' in data) || data.createdAt is timestamp);
     }
 
+    function isValidSalary(data) {
+      return data.keys().hasAll(['userId', 'amount']) &&
+             data.userId is string && data.amount is number && data.amount >= 0 &&
+             (!('breakdown' in data) || data.breakdown is map) &&
+             (!('updatedAt' in data) || data.updatedAt is timestamp);
+    }
+
     // ===============================================================
     // Rules
     // ===============================================================
@@ -234,6 +241,14 @@ service cloud.firestore {
       allow update: if isAuthenticated() && (isOwner(resource.data.userId) || isOwner(resource.data.partnerId) || isAdmin()) && 
                       isValidTodo(request.resource.data);
       allow delete: if isAuthenticated() && (isOwner(resource.data.userId) || isAdmin());
+    }
+
+    match /salaries/{userId} {
+      allow read: if isOwner(userId) || isPartner(userId) || isAdmin();
+      allow create: if isOwner(userId) && isValidSalary(request.resource.data);
+      allow update: if isOwner(userId) && isValidSalary(request.resource.data) &&
+                      request.resource.data.userId == resource.data.userId;
+      allow delete: if isOwner(userId) || isAdmin();
     }
 
     // Default deny

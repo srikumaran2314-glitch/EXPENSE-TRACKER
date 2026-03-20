@@ -226,17 +226,17 @@ export default function Chat({ user, partner }: { user: any, partner: any }) {
   const isWhite = currentTheme === 'light';
   const isDark = currentTheme === 'dark';
 
-  const primaryColor = 'bg-black';
-  const primaryHover = 'hover:opacity-90';
-  const primaryText = 'text-white';
-  const primaryBadge = isWhite ? 'bg-stone-100 text-black font-bold' : (isPink ? 'bg-white/20 text-white' : 'bg-white/10 text-white');
-  const primaryRing = isWhite ? 'focus-within:ring-black' : (isPink ? 'focus-within:ring-white/50' : 'focus-within:ring-white/50');
-  const primaryBorder = isWhite ? 'border-stone-300' : (isPink ? 'border-white/20' : 'border-white/20');
+  const primaryColor = isWhite ? 'bg-black text-white shadow-lg' : (isPink ? 'bg-black text-white shadow-lg' : 'bg-white/10 backdrop-blur-md border border-white/30 shadow-[0_0_20px_rgba(255,255,255,0.15)] ring-1 ring-white/20');
+  const primaryHover = 'hover:bg-white/20';
+  const primaryText = isPink ? 'text-black' : 'text-white';
+  const primaryBadge = isWhite ? 'bg-stone-100 text-black font-bold' : (isPink ? 'bg-black/10 text-black' : 'bg-white/10 text-white');
+  const primaryRing = isWhite ? 'focus-within:ring-black' : (isPink ? 'focus-within:ring-black/50' : 'focus-within:ring-white/50');
+  const primaryBorder = isWhite ? 'border-stone-300' : (isPink ? 'border-black/10' : 'border-white/20');
   const cardBg = isWhite ? 'bg-white' : (isPink ? 'bg-[#FF8DA1]' : 'bg-[#1e1e1e]');
-  const borderCol = isWhite ? 'border-stone-200' : (isPink ? 'border-white/20' : 'border-white/10');
-  const textColor = isWhite ? 'text-black font-bold' : 'text-white';
-  const mutedText = isWhite ? 'text-black font-bold' : 'text-white/60';
-  const boldTextColor = isWhite ? 'text-black font-bold' : 'text-white';
+  const borderCol = isWhite ? 'border-stone-200' : (isPink ? 'border-black/10' : 'border-white/10');
+  const textColor = isWhite ? 'text-black font-bold' : (isPink ? 'text-black font-bold' : 'text-white');
+  const mutedText = isWhite ? 'text-black font-bold' : (isPink ? 'text-black/60 font-bold' : 'text-white/60');
+  const boldTextColor = isWhite ? 'text-black font-bold' : (isPink ? 'text-black font-bold' : 'text-white');
 
   const [isRecording, setIsRecording] = useState(false);
   const [mediaRecorder, setMediaRecorder] = useState<MediaRecorder | null>(null);
@@ -726,8 +726,8 @@ export default function Chat({ user, partner }: { user: any, partner: any }) {
                 <div 
                   className={`px-4 lg:px-6 py-2 lg:py-3 rounded-2xl shadow-sm relative group/msg ${
                     msg.senderId === user.uid 
-                      ? (isWhite ? 'bg-black text-white' : (isPink ? 'bg-white/20 text-white' : 'bg-white text-black')) + ' rounded-tr-none'
-                      : (isWhite ? 'bg-stone-100 text-black' : (isPink ? 'bg-black/20 text-white' : 'bg-white/10 text-white')) + ' rounded-tl-none'
+                      ? (isWhite ? 'bg-black text-white' : (isPink ? 'bg-black text-white' : 'bg-white text-black')) + ' rounded-tr-none'
+                      : (isWhite ? 'bg-stone-100 text-black' : (isPink ? 'bg-white text-black' : 'bg-white/10 text-white')) + ' rounded-tl-none'
                   }`}
                 >
                   {msg.isPinned && (
@@ -972,7 +972,7 @@ export default function Chat({ user, partner }: { user: any, partner: any }) {
               <button
                 type="submit"
                 disabled={!newMessage.trim() && !selectedExpenseId}
-                className={`${primaryColor} ${primaryText} p-3 rounded-xl ${primaryHover} transition-all disabled:opacity-50 shadow-lg ${isWhite ? 'shadow-stone-100' : 'shadow-black/20'}`}
+                className={`${primaryColor} ${primaryText} p-3 rounded-xl transition-all disabled:opacity-50 shadow-lg ${isWhite ? 'shadow-stone-100' : 'shadow-black/20'}`}
               >
                 <Send className="w-5 h-5" />
               </button>
@@ -1028,10 +1028,10 @@ export default function Chat({ user, partner }: { user: any, partner: any }) {
                   ))
                 )}
               </div>
-              <div className={`p-6 bg-black border-t ${borderCol}`}>
+              <div className={`p-6 ${isWhite ? 'bg-stone-50' : 'bg-black'} border-t ${borderCol}`}>
                 <button 
                   onClick={() => setIsExpenseModalOpen(false)}
-                  className={`w-full py-3 rounded-xl font-bold text-white hover:opacity-90 transition-all`}
+                  className={`w-full py-3 ${isWhite ? 'bg-black text-white shadow-lg' : 'bg-white/10 backdrop-blur-md border border-white/30 text-white shadow-[0_0_15px_rgba(255,255,255,0.1)]'} rounded-xl font-bold hover:opacity-80 transition-all`}
                 >
                   Cancel
                 </button>
@@ -1047,6 +1047,7 @@ export default function Chat({ user, partner }: { user: any, partner: any }) {
         message="This will permanently delete ALL messages in this chat for both you and your partner. This action cannot be undone."
         onConfirm={handleClearChat}
         onCancel={() => setIsConfirmClearOpen(false)}
+        theme={currentTheme}
       />
 
       <ConfirmDialog
@@ -1055,6 +1056,7 @@ export default function Chat({ user, partner }: { user: any, partner: any }) {
         message="This message will be removed for both you and your partner. This action cannot be undone."
         onConfirm={handleDelete}
         onCancel={() => setDeleteId(null)}
+        theme={currentTheme}
       />
 
       {/* Context Menu */}
@@ -1126,10 +1128,10 @@ export default function Chat({ user, partner }: { user: any, partner: any }) {
                   </button>
                 ))}
               </div>
-              <div className={`p-6 bg-black border-t ${borderCol}`}>
+              <div className={`p-6 ${isWhite ? 'bg-stone-50' : 'bg-black'} border-t ${borderCol}`}>
                 <button 
                   onClick={() => setIsBackgroundModalOpen(false)}
-                  className={`w-full py-3 rounded-xl font-bold text-white hover:opacity-90 transition-all`}
+                  className={`w-full py-3 ${isWhite ? 'bg-black text-white shadow-lg' : 'bg-white/10 backdrop-blur-md border border-white/30 text-white shadow-[0_0_15px_rgba(255,255,255,0.1)]'} rounded-xl font-bold hover:opacity-80 transition-all`}
                 >
                   Close
                 </button>

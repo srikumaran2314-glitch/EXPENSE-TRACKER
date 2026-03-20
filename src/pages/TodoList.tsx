@@ -16,13 +16,13 @@ export default function TodoList({ user }: { user: any }) {
   const isWhite = currentTheme === 'light';
   const isDark = currentTheme === 'dark';
 
-  const primaryColor = 'bg-black';
-  const primaryText = 'text-white';
+  const primaryColor = isWhite ? 'bg-black text-white shadow-lg' : (isPink ? 'bg-black text-white shadow-lg' : 'bg-white/10 backdrop-blur-md border border-white/30 shadow-[0_0_20px_rgba(255,255,255,0.15)] ring-1 ring-white/20');
+  const primaryText = isPink ? 'text-black' : 'text-white';
   const cardBg = isWhite ? 'bg-white' : (isPink ? 'bg-[#FF8DA1]' : 'bg-[#1e1e1e]');
-  const borderCol = isWhite ? 'border-stone-200' : (isPink ? 'border-white/20' : 'border-white/10');
-  const textColor = isWhite ? 'text-black font-bold' : 'text-white';
-  const mutedText = isWhite ? 'text-black font-bold' : 'text-white/60';
-  const boldTextColor = isWhite ? 'text-black font-bold' : 'text-white';
+  const borderCol = isWhite ? 'border-stone-200' : (isPink ? 'border-black/10' : 'border-white/10');
+  const textColor = isWhite ? 'text-black font-bold' : (isPink ? 'text-black font-bold' : 'text-white');
+  const mutedText = isWhite ? 'text-black font-bold' : (isPink ? 'text-black/60 font-bold' : 'text-white/60');
+  const boldTextColor = isWhite ? 'text-black font-bold' : (isPink ? 'text-black font-bold' : 'text-white');
 
   useEffect(() => {
     if (!user) return;
@@ -114,7 +114,7 @@ export default function TodoList({ user }: { user: any }) {
           <button
             type="submit"
             disabled={!newTask.trim()}
-            className={`px-8 py-4 ${primaryColor} ${primaryText} rounded-2xl font-bold hover:opacity-90 transition-all disabled:opacity-50 shadow-lg`}
+            className={`px-8 py-4 ${isWhite ? 'bg-black text-white' : 'bg-white/10 backdrop-blur-md border border-white/30 text-white shadow-[0_0_20px_rgba(255,255,255,0.15)] ring-1 ring-white/20'} rounded-2xl font-bold hover:opacity-80 transition-all disabled:opacity-50`}
           >
             Add Task
           </button>

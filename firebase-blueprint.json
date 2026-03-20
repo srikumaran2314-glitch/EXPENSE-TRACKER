@@ -126,6 +126,29 @@
         "createdAt": { "type": "string", "format": "date-time" }
       },
       "required": ["userId", "partnerId", "task"]
+    },
+    "Salary": {
+      "title": "Salary",
+      "description": "User monthly salary and breakdown",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "amount": { "type": "number" },
+        "breakdown": {
+          "type": "object",
+          "properties": {
+            "Rent": { "type": "number" },
+            "Food": { "type": "number" },
+            "Travel": { "type": "number" },
+            "Bills": { "type": "number" },
+            "Savings": { "type": "number" },
+            "Personal": { "type": "number" },
+            "Others": { "type": "number" }
+          }
+        },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["userId", "amount"]
     }
   },
   "firestore": {
@@ -156,6 +179,10 @@
     "todos/{todoId}": {
       "schema": "Todo",
       "description": "Shared tasks"
+    },
+    "salaries/{userId}": {
+      "schema": "Salary",
+      "description": "User salary and breakdown"
     }
   }
 }

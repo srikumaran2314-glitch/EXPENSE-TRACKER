@@ -63,18 +63,18 @@ export default function Expenses({ user, partner }: { user: any, partner: any })
   const isWhite = currentTheme === 'light';
   const isDark = currentTheme === 'dark';
 
-  const primaryColor = 'bg-black';
-  const primaryHover = 'hover:bg-stone-900';
-  const primaryRing = 'focus:ring-black';
-  const primaryShadow = 'shadow-stone-200';
-  const primaryBadge = 'bg-black text-white font-bold';
-  const primaryText = 'text-white';
+  const primaryColor = isWhite ? 'bg-black text-white' : (isPink ? 'bg-black text-white' : 'bg-white/10 backdrop-blur-md border border-white/30 shadow-[0_0_20px_rgba(255,255,255,0.15)] ring-1 ring-white/20');
+  const primaryHover = isWhite ? 'hover:bg-black/90' : (isPink ? 'hover:bg-black/90' : 'hover:bg-white/20');
+  const primaryRing = isWhite ? 'focus:ring-black/50' : (isPink ? 'focus:ring-black/50' : 'focus:ring-white/50');
+  const primaryShadow = isWhite ? 'shadow-black/10' : (isPink ? 'shadow-black/10' : 'shadow-white/10');
+  const primaryBadge = isWhite ? 'bg-black/10 text-black font-bold' : (isPink ? 'bg-black/10 text-black font-bold' : 'bg-white/20 backdrop-blur-sm text-white font-bold');
+  const primaryText = isPink ? 'text-black' : 'text-white';
   const cardBg = isWhite ? 'bg-white' : (isPink ? 'bg-[#FF8DA1]' : 'bg-[#1e1e1e]');
-  const borderCol = isWhite ? 'border-stone-200' : (isPink ? 'border-white/20' : 'border-white/10');
-  const textColor = isWhite ? 'text-black font-bold' : 'text-white';
-  const mutedText = isWhite ? 'text-black font-bold' : 'text-white/60';
-  const boldTextColor = isWhite ? 'text-black font-bold' : 'text-white';
-  const inputBg = isWhite ? 'bg-white' : (isPink ? 'bg-white/10' : 'bg-black/40');
+  const borderCol = isWhite ? 'border-stone-200' : (isPink ? 'border-black/10' : 'border-white/10');
+  const textColor = isWhite ? 'text-black font-bold' : (isPink ? 'text-black font-bold' : 'text-white');
+  const mutedText = isWhite ? 'text-black font-bold' : (isPink ? 'text-black/60 font-bold' : 'text-white/60');
+  const boldTextColor = isWhite ? 'text-black font-bold' : (isPink ? 'text-black font-bold' : 'text-white');
+  const inputBg = isWhite ? 'bg-white' : (isPink ? 'bg-black/5' : 'bg-black/40');
   const [isDragging, setIsDragging] = useState(false);
 
   const [formData, setFormData] = useState({
@@ -430,7 +430,7 @@ export default function Expenses({ user, partner }: { user: any, partner: any })
             <button
               onClick={handleBulkDelete}
               disabled={isBulkDeleting}
-              className="px-6 py-3 bg-black text-white border border-white/20 rounded-xl font-bold flex items-center gap-2 hover:bg-stone-900 transition-all text-sm"
+              className={`px-6 py-3 ${isWhite ? 'bg-black text-white' : (isPink ? 'bg-black text-white shadow-lg' : 'bg-white/10 backdrop-blur-md border border-white/30 text-white shadow-[0_0_15px_rgba(255,255,255,0.1)]')} rounded-xl font-bold flex items-center gap-2 hover:opacity-80 transition-all text-sm`}
             >
               <Trash2 className="w-5 h-5" />
               Delete Selected ({selectedIds.length})
@@ -438,7 +438,7 @@ export default function Expenses({ user, partner }: { user: any, partner: any })
           )}
           <button
             onClick={() => setIsPurgeModalOpen(true)}
-            className={`px-6 py-3 bg-black border border-white/20 rounded-xl font-bold flex items-center gap-2 hover:bg-stone-900 transition-all text-sm text-white`}
+            className={`px-6 py-3 ${isWhite ? 'bg-black text-white' : (isPink ? 'bg-black text-white shadow-lg' : 'bg-white/10 backdrop-blur-md border border-white/30 text-white shadow-[0_0_15px_rgba(255,255,255,0.1)]')} rounded-xl font-bold flex items-center gap-2 hover:opacity-80 transition-all text-sm`}
           >
             <Trash2 className="w-5 h-5" />
             Purge Data
@@ -568,7 +568,11 @@ export default function Expenses({ user, partner }: { user: any, partner: any })
             <button
               key={cat}
               onClick={() => setFilter(cat)}
-              className={`px-4 py-2 rounded-xl text-sm font-bold whitespace-nowrap transition-all bg-black text-white shadow-lg shadow-stone-200`}
+              className={`px-4 py-2 rounded-xl text-sm font-bold whitespace-nowrap transition-all ${
+                filter === cat
+                  ? (isWhite ? 'bg-black text-white shadow-lg' : 'bg-white/20 backdrop-blur-md text-white border border-white/40 shadow-[0_0_20px_rgba(255,255,255,0.2)] ring-1 ring-white/30')
+                  : (isWhite ? 'bg-stone-100 text-stone-400 hover:text-black hover:bg-stone-200' : 'bg-white/5 text-white/70 hover:bg-white/10 hover:text-white border border-white/10')
+              }`}
             >
               {cat}
             </button>
@@ -701,7 +705,7 @@ export default function Expenses({ user, partner }: { user: any, partner: any })
                       <div className="flex items-center justify-end gap-2">
                         <button 
                           onClick={() => setViewingExpense(expense)}
-                          className={`p-2 bg-black text-white rounded-lg transition-all shadow-sm`}
+                          className={`p-2 ${isWhite ? 'bg-black text-white shadow-lg' : (isPink ? 'bg-black text-white shadow-lg' : 'bg-white/10 backdrop-blur-md border border-white/30 text-white shadow-[0_0_10px_rgba(255,255,255,0.1)]')} rounded-lg transition-all hover:opacity-80`}
                           title="View Details"
                         >
                           <ChevronRight className="w-4 h-4" />
@@ -709,7 +713,7 @@ export default function Expenses({ user, partner }: { user: any, partner: any })
                         {expense.receiptUrl && (
                           <button 
                             onClick={() => window.open(expense.receiptUrl, '_blank')}
-                            className={`p-2 bg-black text-white rounded-lg transition-all shadow-sm`}
+                            className={`p-2 ${isWhite ? 'bg-black text-white shadow-lg' : (isPink ? 'bg-black text-white shadow-lg' : 'bg-white/10 backdrop-blur-md border border-white/30 text-white shadow-[0_0_10px_rgba(255,255,255,0.1)]')} rounded-lg transition-all hover:opacity-80`}
                             title="View Receipt"
                           >
                             <Download className="w-4 h-4" />
@@ -717,13 +721,13 @@ export default function Expenses({ user, partner }: { user: any, partner: any })
                         )}
                         <button 
                           onClick={() => setEditingExpense(expense)}
-                          className={`p-2 bg-black text-white rounded-lg opacity-0 group-hover:opacity-100 transition-all shadow-sm`}
+                          className={`p-2 ${isWhite ? 'bg-black text-white shadow-lg' : (isPink ? 'bg-black text-white shadow-lg' : 'bg-white/10 backdrop-blur-md border border-white/30 text-white shadow-[0_0_10px_rgba(255,255,255,0.1)]')} rounded-lg opacity-0 group-hover:opacity-100 transition-all hover:opacity-80`}
                         >
                           <Edit2 className="w-4 h-4" />
                         </button>
                         <button 
                           onClick={() => setDeleteId(expense.id)}
-                          className={`p-2 bg-black text-white hover:bg-red-600 rounded-lg opacity-0 group-hover:opacity-100 transition-all shadow-sm`}
+                          className={`p-2 ${isWhite ? 'bg-black text-white shadow-lg' : (isPink ? 'bg-black text-white shadow-lg' : 'bg-white/10 backdrop-blur-md border border-white/30 text-white shadow-[0_0_10px_rgba(255,255,255,0.1)]')} hover:bg-red-600/80 rounded-lg opacity-0 group-hover:opacity-100 transition-all`}
                         >
                           <Trash2 className="w-4 h-4" />
                         </button>
@@ -822,8 +826,8 @@ export default function Expenses({ user, partner }: { user: any, partner: any })
                             onClick={() => setFormData({ ...formData, mealType: meal })}
                             className={`flex-1 py-2 rounded-xl text-xs font-bold border transition-all ${
                               formData.mealType === meal
-                                ? `${primaryColor} ${isPink ? 'text-white border-transparent' : 'text-stone-900 border-transparent'}`
-                                : `${isPink ? 'bg-stone-50 border-stone-200 text-stone-600' : 'bg-white/5 border-white/10 text-stone-400'}`
+                                ? 'bg-white/20 backdrop-blur-md text-white border border-white/40 shadow-[0_0_15px_rgba(255,255,255,0.2)] ring-1 ring-white/30'
+                                : 'bg-white/5 border-white/10 text-white/40 hover:text-white/60'
                             }`}
                           >
                             {meal}
@@ -927,8 +931,8 @@ export default function Expenses({ user, partner }: { user: any, partner: any })
                     <label className="flex items-center gap-3 cursor-pointer group">
                       <div className={`w-6 h-6 rounded-md border-2 flex items-center justify-center transition-all ${
                         formData.isSplit 
-                          ? `${primaryColor} border-transparent` 
-                          : `${isPink ? 'border-stone-200 bg-stone-50' : 'border-white/10 bg-white/5'}`
+                          ? 'bg-white/20 backdrop-blur-md border-white/40 shadow-[0_0_10px_rgba(255,255,255,0.2)] ring-1 ring-white/30' 
+                          : 'border-white/10 bg-white/5'
                       }`}>
                         {formData.isSplit && <Plus className="w-4 h-4 text-white" />}
                       </div>
@@ -998,7 +1002,7 @@ export default function Expenses({ user, partner }: { user: any, partner: any })
 
                 <button
                   type="submit"
-                  className={`w-full ${isWhite ? 'bg-black text-white' : 'bg-white text-black'} py-4 rounded-2xl font-bold text-lg transition-all shadow-xl hover:scale-[1.01] active:scale-[0.99]`}
+                  className={`w-full ${isWhite ? 'bg-black text-white shadow-lg' : (isPink ? 'bg-black text-white shadow-lg' : 'bg-white/10 backdrop-blur-md border border-white/30 text-white shadow-[0_0_20px_rgba(255,255,255,0.15)]')} py-4 rounded-2xl font-bold text-lg transition-all hover:opacity-80 active:scale-[0.99]`}
                 >
                   {editingExpense ? 'Update Expense' : 'Save Expense'}
                 </button>
@@ -1097,7 +1101,7 @@ export default function Expenses({ user, partner }: { user: any, partner: any })
                       <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                         <button 
                           onClick={() => window.open(viewingExpense.receiptUrl, '_blank')}
-                          className="px-6 py-3 bg-white text-stone-900 rounded-2xl font-bold flex items-center gap-2 hover:scale-105 transition-transform"
+                          className={`px-6 py-3 ${isWhite ? 'bg-black text-white shadow-lg' : (isPink ? 'bg-black text-white shadow-lg' : 'bg-white/10 backdrop-blur-md border border-white/30 text-white shadow-[0_0_15px_rgba(255,255,255,0.2)]')} rounded-2xl font-bold flex items-center gap-2 hover:opacity-80 transition-all`}
                         >
                           <Download className="w-5 h-5" />
                           Download Receipt
@@ -1113,7 +1117,7 @@ export default function Expenses({ user, partner }: { user: any, partner: any })
                       setEditingExpense(viewingExpense);
                       setViewingExpense(null);
                     }}
-                    className={`flex-1 py-4 ${isPink ? 'bg-stone-100 text-stone-900' : 'bg-white/10 text-white'} rounded-2xl font-bold hover:bg-opacity-80 transition-all flex items-center justify-center gap-2`}
+                    className={`flex-1 py-4 ${isWhite ? 'bg-black text-white shadow-lg' : (isPink ? 'bg-black text-white shadow-lg' : 'bg-white/10 backdrop-blur-md border border-white/30 text-white shadow-[0_0_15px_rgba(255,255,255,0.1)]')} rounded-2xl font-bold hover:opacity-80 transition-all flex items-center justify-center gap-2`}
                   >
                     <Edit2 className="w-5 h-5" />
                     Edit Details
@@ -1123,7 +1127,7 @@ export default function Expenses({ user, partner }: { user: any, partner: any })
                       setDeleteId(viewingExpense.id);
                       setViewingExpense(null);
                     }}
-                    className="flex-1 py-4 bg-red-50 text-red-600 rounded-2xl font-bold hover:bg-red-100 transition-all flex items-center justify-center gap-2"
+                    className={`flex-1 py-4 ${isWhite ? 'bg-red-600 text-white shadow-lg' : 'bg-red-600/20 backdrop-blur-md border border-red-500/30 text-red-500 shadow-[0_0_15px_rgba(239,68,68,0.1)]'} rounded-2xl font-bold hover:bg-red-600 hover:text-white transition-all flex items-center justify-center gap-2`}
                   >
                     <Trash2 className="w-5 h-5" />
                     Delete Expense
@@ -1193,13 +1197,13 @@ export default function Expenses({ user, partner }: { user: any, partner: any })
                   <button
                     onClick={handlePurge}
                     disabled={isBulkDeleting}
-                    className="w-full py-4 bg-red-600 text-white rounded-2xl font-bold text-lg hover:bg-red-700 transition-all shadow-lg shadow-red-600/20 disabled:opacity-50"
+                    className={`w-full py-4 ${isWhite ? 'bg-red-600 text-white shadow-lg' : 'bg-red-600 text-white shadow-lg shadow-red-600/20'} rounded-2xl font-bold text-lg hover:opacity-80 transition-all disabled:opacity-50`}
                   >
                     {isBulkDeleting ? 'Purging...' : 'Confirm Purge'}
                   </button>
                   <button
                     onClick={() => setIsPurgeModalOpen(false)}
-                    className={`w-full py-4 ${isPink ? 'bg-stone-100 text-stone-900' : 'bg-white/10 text-white'} rounded-2xl font-bold transition-all`}
+                    className={`w-full py-4 ${isWhite ? 'bg-stone-100 text-stone-600 border-stone-200' : (isPink ? 'bg-black/5 text-black border border-black/10' : 'bg-white/5 text-white border border-white/10')} rounded-2xl font-bold hover:opacity-80 transition-all`}
                   >
                     Cancel
                   </button>
@@ -1218,6 +1222,7 @@ export default function Expenses({ user, partner }: { user: any, partner: any })
         onConfirm={handleDelete}
         onCancel={() => setDeleteId(null)}
         isDanger={true}
+        theme={currentTheme}
       />
     </div>
   );

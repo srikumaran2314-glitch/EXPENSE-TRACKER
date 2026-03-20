@@ -3,9 +3,9 @@ import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, 
   PieChart, Pie, Cell, Legend, LineChart, Line
 } from 'recharts';
-import { collection, query, where, onSnapshot, orderBy, or, limit } from 'firebase/firestore';
+import { collection, query, where, onSnapshot, orderBy, or, limit, doc } from 'firebase/firestore';
 import { db } from '../firebase';
-import { TrendingUp, IndianRupee, Users, Calendar, HandCoins, ArrowRight, Receipt, Target, Heart } from 'lucide-react';
+import { TrendingUp, IndianRupee, Users, Calendar, HandCoins, ArrowRight, Receipt, Target, Heart, Wallet } from 'lucide-react';
 import { format, startOfMonth, endOfMonth, isWithinInterval, parseISO } from 'date-fns';
 import { Link } from 'react-router-dom';
 
@@ -42,20 +42,22 @@ export default function Dashboard({ user, partner }: { user: any, partner: any }
   const [budgets, setBudgets] = useState<any[]>([]);
   const [wishlist, setWishlist] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [salaryData, setSalaryData] = useState<any>(null);
+  const [partnerSalaryData, setPartnerSalaryData] = useState<any>(null);
 
   const currentTheme = user?.theme || 'dark';
   const isPink = currentTheme === 'pink';
   const isWhite = currentTheme === 'light';
   const isDark = currentTheme === 'dark';
 
-  const primaryColor = isWhite ? '#000000' : (isPink ? '#FFFFFF' : '#FFFFFF');
-  const primaryBg = 'bg-black';
-  const primaryText = 'text-white';
+  const primaryColor = isWhite ? '#000000' : (isPink ? '#000000' : '#FFFFFF');
+  const primaryBg = 'bg-white/10 backdrop-blur-md border border-white/30 shadow-[0_0_20px_rgba(255,255,255,0.15)] ring-1 ring-white/20';
+  const primaryText = isPink ? 'text-black' : 'text-white';
   const cardBg = isWhite ? 'bg-white' : (isPink ? 'bg-[#FF8DA1]' : 'bg-[#1e1e1e]');
-  const textColor = isWhite ? 'text-black font-bold' : 'text-white';
-  const mutedText = isWhite ? 'text-black font-bold' : 'text-white/60';
-  const boldTextColor = isWhite ? 'text-black font-bold' : 'text-white';
-  const borderCol = isWhite ? 'border-stone-200' : (isPink ? 'border-white/20' : 'border-white/10');
+  const textColor = isWhite ? 'text-black font-bold' : (isPink ? 'text-black font-bold' : 'text-white');
+  const mutedText = isWhite ? 'text-black font-bold' : (isPink ? 'text-black/60 font-bold' : 'text-white/60');
+  const boldTextColor = isWhite ? 'text-black font-bold' : (isPink ? 'text-black font-bold' : 'text-white');
+  const borderCol = isWhite ? 'border-stone-200' : (isPink ? 'border-black/10' : 'border-white/10');
 
   useEffect(() => {
     if (!user?.uid) return;
@@ -95,12 +97,25 @@ export default function Dashboard({ user, partner }: { user: any, partner: any }
       setWishlist(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
     });
 
+    const unsubSalary = onSnapshot(doc(db, 'salaries', user.uid), (docSnap) => {
+      if (docSnap.exists()) setSalaryData(docSnap.data());
+    });
+
+    let unsubPartnerSalary: () => void;
+    if (partner?.uid) {
+      unsubPartnerSalary = onSnapshot(doc(db, 'salaries', partner.uid), (docSnap) => {
+        if (docSnap.exists()) setPartnerSalaryData(docSnap.data());
+      });
+    }
+
     return () => {
       unsubscribeExpenses();
       unsubscribeBudgets();
       unsubscribeWishlist();
+      unsubSalary();
+      if (unsubPartnerSalary) unsubPartnerSalary();
     };
-  }, [user?.uid]);
+  }, [user?.uid, partner?.uid]);
 
   const now = new Date();
   const monthStart = startOfMonth(now);
@@ -186,7 +201,7 @@ export default function Dashboard({ user, partner }: { user: any, partner: any }
             {partner && (
               <div className="flex items-center gap-2">
                 <div className={`w-2 h-2 rounded-full ${partner?.status === 'online' ? 'bg-emerald-500 animate-pulse' : 'bg-white/20'}`} />
-                <span className={`text-xs font-bold ${isPink ? 'bg-white/10 text-white px-2 py-0.5 rounded' : (isWhite ? 'text-black' : boldTextColor)}`}>
+                <span className={`text-xs font-bold ${isPink ? 'bg-black/10 text-black px-2 py-0.5 rounded' : (isWhite ? 'text-black' : boldTextColor)}`}>
                   {partner.name}: {partner?.status === 'online' ? 'Online' : 'Offline'}
                 </span>
               </div>
@@ -203,10 +218,10 @@ export default function Dashboard({ user, partner }: { user: any, partner: any }
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <StatCard 
-          title="Monthly Total" 
-          amount={totalMonthly} 
-          icon={IndianRupee} 
-          color={primaryBg}
+          title="Monthly Income" 
+          amount={salaryData?.amount || 0} 
+          icon={Wallet} 
+          color={isPink ? 'bg-black/10' : 'bg-emerald-500'} 
           cardBg={cardBg}
           textColor={textColor}
           mutedText={mutedText}
@@ -214,21 +229,10 @@ export default function Dashboard({ user, partner }: { user: any, partner: any }
           isWhite={isWhite}
         />
         <StatCard 
-          title="My Share" 
+          title="Monthly Spending" 
           amount={myMonthly} 
           icon={TrendingUp} 
           color="bg-blue-500"
-          cardBg={cardBg}
-          textColor={textColor}
-          mutedText={mutedText}
-          borderCol={borderCol}
-          isWhite={isWhite}
-        />
-        <StatCard 
-          title="Partner Share" 
-          amount={partnerMonthly} 
-          icon={Users} 
-          color="bg-amber-500"
           cardBg={cardBg}
           textColor={textColor}
           mutedText={mutedText}
@@ -247,6 +251,17 @@ export default function Dashboard({ user, partner }: { user: any, partner: any }
           isBalance
           isWhite={isWhite}
         />
+        <StatCard 
+          title="Remaining Budget" 
+          amount={(salaryData?.amount || 0) - myMonthly} 
+          icon={Target} 
+          color="bg-rose-500"
+          cardBg={cardBg}
+          textColor={textColor}
+          mutedText={mutedText}
+          borderCol={borderCol}
+          isWhite={isWhite}
+        />
       </div>
 
       <div className="flex flex-col gap-4">
@@ -257,7 +272,11 @@ export default function Dashboard({ user, partner }: { user: any, partner: any }
               <button
                 key={f}
                 onClick={() => setChartFilter(f)}
-                className={`px-4 py-1.5 text-xs font-bold rounded-lg transition-all bg-black text-white shadow-sm`}
+                className={`px-4 py-1.5 text-xs font-bold rounded-lg transition-all ${
+                  chartFilter === f
+                    ? (isWhite ? 'bg-black text-white shadow-lg' : 'bg-white/20 backdrop-blur-md text-white border border-white/40 shadow-[0_0_15px_rgba(255,255,255,0.2)] ring-1 ring-white/30')
+                    : (isWhite ? 'text-stone-400 hover:text-black' : 'text-white/40 hover:text-white/60')
+                }`}
               >
                 {f}
               </button>
@@ -284,20 +303,20 @@ export default function Dashboard({ user, partner }: { user: any, partner: any }
                   {pieData.map((entry: any, index) => (
                     <Cell 
                       key={`cell-${index}`} 
-                      fill={entry.color || (chartFilter === 'Me' ? (isPink ? '#FF8DA1' : '#10b981') : chartFilter === 'Partner' ? '#ffffff' : COLORS[index % COLORS.length])} 
-                      stroke={entry.color === '#ffffff' || (chartFilter === 'Partner' && index === 0) ? '#ffffff20' : 'none'}
+                      fill={entry.color || (chartFilter === 'Me' ? (isPink ? '#000000' : '#10b981') : chartFilter === 'Partner' ? (isPink ? '#ffffff' : '#ffffff') : COLORS[index % COLORS.length])} 
+                      stroke={entry.color === '#ffffff' || (chartFilter === 'Partner' && index === 0) ? (isPink ? '#00000020' : '#ffffff20') : 'none'}
                     />
                   ))}
                 </Pie>
                 <Tooltip 
                   contentStyle={{ 
                     backgroundColor: isWhite ? 'white' : (isPink ? '#FF8DA1' : '#1c1917'), 
-                    borderColor: isWhite ? '#e7e5e4' : (isPink ? 'rgba(255,255,255,0.2)' : '#292524'),
-                    color: isWhite ? '#1c1917' : 'white',
+                    borderColor: isWhite ? '#e7e5e4' : (isPink ? 'rgba(0,0,0,0.1)' : '#292524'),
+                    color: isWhite ? '#1c1917' : (isPink ? '#000000' : 'white'),
                     borderRadius: '12px',
-                    border: '1px solid ' + (isWhite ? '#e7e5e4' : (isPink ? 'rgba(255,255,255,0.2)' : '#292524'))
+                    border: '1px solid ' + (isWhite ? '#e7e5e4' : (isPink ? 'rgba(0,0,0,0.1)' : '#292524'))
                   }}
-                  itemStyle={{ color: isWhite ? '#1c1917' : 'white' }}
+                  itemStyle={{ color: isWhite ? '#1c1917' : (isPink ? '#000000' : 'white') }}
                 />
               </PieChart>
             </ResponsiveContainer>
@@ -307,8 +326,8 @@ export default function Dashboard({ user, partner }: { user: any, partner: any }
               <div key={item.name} className="flex justify-between items-center text-sm">
                 <div className="flex items-center gap-2">
                   <div 
-                    className="w-2 h-2 rounded-full border border-white/20" 
-                    style={{ backgroundColor: item.color || (chartFilter === 'Me' ? '#000000' : chartFilter === 'Partner' ? '#ffffff' : COLORS[i % COLORS.length]) }} 
+                    className={`w-2 h-2 rounded-full border ${isPink ? 'border-black/20' : 'border-white/20'}`} 
+                    style={{ backgroundColor: item.color || (chartFilter === 'Me' ? (isPink ? '#000000' : '#000000') : chartFilter === 'Partner' ? '#ffffff' : COLORS[i % COLORS.length]) }} 
                   />
                   <span className={mutedText}>{item.name}</span>
                 </div>
@@ -320,45 +339,45 @@ export default function Dashboard({ user, partner }: { user: any, partner: any }
 
         <div className={`${cardBg} p-8 rounded-3xl shadow-sm border ${borderCol} lg:col-span-2`}>
           <h3 className={`text-lg font-bold mb-6 ${textColor}`}>Daily Spending Trend</h3>
-          <div className={`h-[350px] ${isWhite ? 'bg-stone-50' : 'bg-white/5'} rounded-2xl p-4 border ${borderCol}`}>
+          <div className={`h-[350px] ${isWhite ? 'bg-stone-50' : (isPink ? 'bg-black/5' : 'bg-white/5')} rounded-2xl p-4 border ${borderCol}`}>
             <ResponsiveContainer width="100%" height="100%">
               <LineChart data={dailyData}>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={isWhite ? '#e7e5e4' : '#ffffff10'} />
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={isWhite ? '#e7e5e4' : (isPink ? 'rgba(0,0,0,0.1)' : '#ffffff10')} />
                 <XAxis 
                   dataKey="day" 
                   axisLine={false} 
                   tickLine={false} 
-                  tick={{fill: isWhite ? '#000000' : 'rgba(255,255,255,0.4)', fontSize: 12, fontWeight: 700}} 
+                  tick={{fill: isWhite ? '#000000' : (isPink ? 'rgba(0,0,0,0.6)' : 'rgba(255,255,255,0.4)'), fontSize: 12, fontWeight: 700}} 
                 />
                 <YAxis 
                   axisLine={false} 
                   tickLine={false} 
-                  tick={{fill: isWhite ? '#000000' : 'rgba(255,255,255,0.4)', fontSize: 12, fontWeight: 700}} 
+                  tick={{fill: isWhite ? '#000000' : (isPink ? 'rgba(0,0,0,0.6)' : 'rgba(255,255,255,0.4)'), fontSize: 12, fontWeight: 700}} 
                 />
                 <Tooltip 
                   contentStyle={{ 
                     backgroundColor: isWhite ? 'white' : (isPink ? '#FF8DA1' : '#1c1917'), 
-                    borderColor: isWhite ? '#e7e5e4' : 'rgba(255,255,255,0.1)',
-                    color: isWhite ? '#1c1917' : 'white',
+                    borderColor: isWhite ? '#e7e5e4' : (isPink ? 'rgba(0,0,0,0.1)' : 'rgba(255,255,255,0.1)'),
+                    color: isWhite ? '#1c1917' : (isPink ? '#000000' : 'white'),
                     borderRadius: '16px', 
-                    border: '1px solid rgba(255,255,255,0.1)', 
+                    border: '1px solid ' + (isWhite ? '#e7e5e4' : (isPink ? 'rgba(0,0,0,0.1)' : 'rgba(255,255,255,0.1)')), 
                     boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)' 
                   }}
-                  itemStyle={{ fontWeight: 'bold', color: isWhite ? '#1c1917' : 'white' }}
+                  itemStyle={{ fontWeight: 'bold', color: isWhite ? '#1c1917' : (isPink ? '#000000' : 'white') }}
                 />
                 <Legend 
                   verticalAlign="top" 
                   height={36}
-                  formatter={(value) => <span className={`${isWhite ? 'text-black' : 'text-white/80'} font-bold text-xs uppercase tracking-wider`}>{value}</span>}
+                  formatter={(value) => <span className={`${isWhite ? 'text-black' : (isPink ? 'text-black' : 'text-white/80')} font-bold text-xs uppercase tracking-wider`}>{value}</span>}
                 />
                 {(chartFilter === 'Me' || chartFilter === 'Both') && (
                   <Line 
                     type="monotone" 
                     dataKey="me" 
                     name="Me" 
-                    stroke={isWhite ? '#000000' : (isPink ? '#FF8DA1' : '#10b981')} 
+                    stroke={isWhite ? '#000000' : (isPink ? '#000000' : '#10b981')} 
                     strokeWidth={4} 
-                    dot={{ r: 4, fill: isWhite ? '#000000' : (isPink ? '#FF8DA1' : '#10b981'), stroke: '#ffffff', strokeWidth: 2 }} 
+                    dot={{ r: 4, fill: isWhite ? '#000000' : (isPink ? '#000000' : '#10b981'), stroke: isPink ? '#FF8DA1' : '#ffffff', strokeWidth: 2 }} 
                     activeDot={{ r: 6, strokeWidth: 0 }} 
                   />
                 )}
@@ -387,7 +406,7 @@ export default function Dashboard({ user, partner }: { user: any, partner: any }
               <Target className="w-5 h-5 text-emerald-500" />
               Budget Status
             </h3>
-            <Link to="/budgets" className={`text-sm font-bold ${isPink ? 'text-[#FF8DA1]' : (isWhite ? 'text-black' : 'text-white/40')}`}>View All</Link>
+            <Link to="/budgets" className={`text-sm font-bold ${isPink ? 'text-black/60' : (isWhite ? 'text-black' : 'text-white/40')}`}>View All</Link>
           </div>
           <div className="space-y-6">
             {budgets.length === 0 ? (
@@ -402,9 +421,9 @@ export default function Dashboard({ user, partner }: { user: any, partner: any }
                       <span className={textColor}>{budget.category}</span>
                       <span className={mutedText}>₹{spent.toLocaleString()} / ₹{budget.amount.toLocaleString()}</span>
                     </div>
-                    <div className="h-2 bg-white/5 rounded-full overflow-hidden">
+                    <div className={`h-2 ${isPink ? 'bg-black/10' : 'bg-white/5'} rounded-full overflow-hidden`}>
                       <div 
-                        className={`h-full ${percent > 90 ? 'bg-red-500' : 'bg-emerald-500'}`} 
+                        className={`h-full ${percent > 90 ? 'bg-red-500' : (isPink ? 'bg-black' : 'bg-emerald-500')}`} 
                         style={{ width: `${percent}%` }}
                       />
                     </div>
@@ -421,7 +440,7 @@ export default function Dashboard({ user, partner }: { user: any, partner: any }
               <Heart className="w-5 h-5 text-red-500" />
               Wishlist Progress
             </h3>
-            <Link to="/wishlist" className={`text-sm font-bold ${isPink ? 'text-[#FF8DA1]' : (isWhite ? 'text-black' : 'text-white/40')}`}>View All</Link>
+            <Link to="/wishlist" className={`text-sm font-bold ${isPink ? 'text-black/60' : (isWhite ? 'text-black' : 'text-white/40')}`}>View All</Link>
           </div>
           <div className="space-y-6">
             {wishlist.length === 0 ? (
@@ -435,9 +454,9 @@ export default function Dashboard({ user, partner }: { user: any, partner: any }
                       <span className={textColor}>{item.title}</span>
                       <span className={mutedText}>{Math.round(percent)}%</span>
                     </div>
-                    <div className="h-2 bg-white/5 rounded-full overflow-hidden">
+                    <div className={`h-2 ${isPink ? 'bg-black/10' : 'bg-white/5'} rounded-full overflow-hidden`}>
                       <div 
-                        className="h-full bg-blue-500" 
+                        className={`h-full ${isPink ? 'bg-black' : 'bg-blue-500'}`} 
                         style={{ width: `${percent}%` }}
                       />
                     </div>
@@ -452,12 +471,16 @@ export default function Dashboard({ user, partner }: { user: any, partner: any }
       <div className={`${cardBg} p-8 rounded-3xl shadow-sm border ${borderCol}`}>
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
           <h3 className={`text-xl font-bold ${textColor}`}>Recent Expenses</h3>
-          <div className={`${isWhite ? 'bg-stone-100' : 'bg-white/5'} p-1 rounded-xl flex items-center gap-2`}>
+          <div className={`${isWhite ? 'bg-stone-100' : (isPink ? 'bg-black/5' : 'bg-white/5')} p-1 rounded-xl flex items-center gap-2`}>
             {(['All', 'Me', 'Partner'] as const).map((f) => (
               <button
                 key={f}
                 onClick={() => setRecentExpenseFilter(f)}
-                className={`px-3 py-1 text-xs font-bold rounded-lg transition-all bg-black text-white shadow-sm`}
+                className={`px-3 py-1 text-xs font-bold rounded-lg transition-all ${
+                  recentExpenseFilter === f
+                    ? (isWhite ? 'bg-black text-white shadow-lg' : (isPink ? 'bg-black text-white shadow-lg' : 'bg-white/20 backdrop-blur-md text-white border border-white/40 shadow-[0_0_15px_rgba(255,255,255,0.2)] ring-1 ring-white/30'))
+                    : (isWhite ? 'text-stone-400 hover:text-black' : (isPink ? 'text-black/40 hover:text-black/60' : 'text-white/40 hover:text-white/60'))
+                }`}
               >
                 {f}
               </button>
@@ -465,7 +488,7 @@ export default function Dashboard({ user, partner }: { user: any, partner: any }
           </div>
           <Link 
             to="/expenses" 
-            className={`flex items-center gap-2 text-sm font-bold ${isPink ? 'text-[#FF8DA1] hover:text-[#FF8DA1]/80' : (isWhite ? 'text-black hover:opacity-80' : 'text-white/40 hover:text-white')} transition-colors`}
+            className={`flex items-center gap-2 text-sm font-bold ${isPink ? 'text-black/60 hover:text-black' : (isWhite ? 'text-black hover:opacity-80' : 'text-white/40 hover:text-white')} transition-colors`}
           >
             View All
             <ArrowRight className="w-4 h-4" />
@@ -475,17 +498,17 @@ export default function Dashboard({ user, partner }: { user: any, partner: any }
           {filteredRecentExpenses.map((expense) => (
             <div 
               key={expense.id} 
-              className={`flex items-center justify-between p-4 rounded-2xl border ${borderCol} hover:bg-white/5 transition-all`}
+              className={`flex items-center justify-between p-4 rounded-2xl border ${borderCol} ${isPink ? 'hover:bg-black/5' : 'hover:bg-white/5'} transition-all`}
             >
               <div className="flex items-center gap-4">
-                <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${isPink ? 'bg-white/20 text-white' : 'bg-white/10 text-white/40'}`}>
+                <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${isPink ? 'bg-black/10 text-black' : 'bg-white/10 text-white/40'}`}>
                   <Receipt className="w-5 h-5" />
                 </div>
                 <div>
                   <p className={`font-bold ${textColor}`}>
                     {expense.paidTo || expense.paid_to}
                     {expense.mealType && (
-                      <span className={`ml-2 text-[10px] px-1.5 py-0.5 rounded-md ${isPink ? 'bg-[#FF8DA1]/20 text-[#FF8DA1]' : 'bg-white/10 text-white/40'}`}>
+                      <span className={`ml-2 text-[10px] px-1.5 py-0.5 rounded-md ${isPink ? 'bg-black/10 text-black' : 'bg-white/10 text-white/40'}`}>
                         {expense.mealType}
                       </span>
                     )}
@@ -494,7 +517,7 @@ export default function Dashboard({ user, partner }: { user: any, partner: any }
                 </div>
               </div>
               <div className="text-right">
-                <p className={`font-bold ${isPink ? 'text-white' : 'text-white'}`}>₹{expense.amount.toLocaleString()}</p>
+                <p className={`font-bold ${textColor}`}>₹{expense.amount.toLocaleString()}</p>
                 <p className={`text-[10px] ${mutedText}`}>Paid by {expense.paidBy || expense.paid_by}</p>
               </div>
             </div>

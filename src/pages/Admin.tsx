@@ -59,10 +59,10 @@ export default function Admin({ user }: { user: any }) {
   const isWhite = currentTheme === 'light';
   const isDark = currentTheme === 'dark';
 
-  const textColor = isWhite ? 'text-black font-bold' : 'text-white';
-  const mutedText = isWhite ? 'text-black font-bold' : 'text-white/60';
+  const textColor = isWhite ? 'text-black font-bold' : (isPink ? 'text-black font-bold' : 'text-white');
+  const mutedText = isWhite ? 'text-black font-bold' : (isPink ? 'text-black/60 font-bold' : 'text-white/60');
   const cardBg = isWhite ? 'bg-white' : (isPink ? 'bg-[#FF8DA1]' : 'bg-[#1e1e1e]');
-  const borderCol = isWhite ? 'border-stone-200' : (isPink ? 'border-white/20' : 'border-white/10');
+  const borderCol = isWhite ? 'border-stone-200' : (isPink ? 'border-black/10' : 'border-white/10');
 
   if (loading) return <div className={`h-full flex items-center justify-center ${textColor}`}>Loading admin dashboard...</div>;
 
@@ -77,10 +77,10 @@ export default function Admin({ user }: { user: any }) {
           <p className={mutedText}>System-wide analytics and management</p>
         </div>
         <div className="flex gap-3">
-          <button className={`px-4 py-2 bg-black border border-white/20 rounded-xl text-sm font-bold text-white hover:bg-stone-900 transition-all`}>
+          <button className={`px-4 py-2 ${isWhite ? 'bg-black text-white' : (isPink ? 'bg-black text-white shadow-lg' : 'bg-white/10 backdrop-blur-md border border-white/30 text-white shadow-[0_0_15px_rgba(255,255,255,0.1)]')} rounded-xl text-sm font-bold hover:opacity-80 transition-all`}>
             Export Logs
           </button>
-          <button className="px-4 py-2 bg-black text-white rounded-xl text-sm font-bold hover:bg-stone-900 transition-all shadow-lg shadow-emerald-900/20">
+          <button className={`px-4 py-2 ${isWhite ? 'bg-black text-white' : (isPink ? 'bg-black text-white shadow-lg' : 'bg-white/10 backdrop-blur-md border border-white/30 text-white shadow-[0_0_15px_rgba(255,255,255,0.1)]')} rounded-xl text-sm font-bold hover:opacity-80 transition-all`}>
             System Settings
           </button>
         </div>

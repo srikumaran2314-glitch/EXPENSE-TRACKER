@@ -17,7 +17,9 @@ import {
   PieChart as PieChartIcon,
   Bell,
   CheckSquare,
-  Heart
+  Heart,
+  Wallet,
+  Users
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { format } from 'date-fns';
@@ -31,6 +33,9 @@ import Signup from './pages/Signup';
 import Budgets from './pages/Budgets';
 import Wishlist from './pages/Wishlist';
 import TodoList from './pages/TodoList';
+import Salary from './pages/Salary';
+import Breakdown from './pages/Breakdown';
+import CoupleOverview from './pages/CoupleOverview';
 
 const Layout = ({ children, user, onLogout }: { children: React.ReactNode, user: any, onLogout: () => void }) => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
@@ -39,6 +44,9 @@ const Layout = ({ children, user, onLogout }: { children: React.ReactNode, user:
   const navItems = [
     { name: 'Dashboard', icon: LayoutDashboard, path: '/' },
     { name: 'Expenses', icon: Receipt, path: '/expenses' },
+    { name: 'Salary', icon: Wallet, path: '/salary' },
+    { name: 'Breakdown', icon: PieChartIcon, path: '/breakdown' },
+    { name: 'Couple Overview', icon: Users, path: '/couple-overview' },
     { name: 'Budgets', icon: TrendingUp, path: '/budgets' },
     { name: 'Wishlist', icon: Heart, path: '/wishlist' },
     { name: 'Tasks', icon: CheckSquare, path: '/todos' },
@@ -53,17 +61,28 @@ const Layout = ({ children, user, onLogout }: { children: React.ReactNode, user:
   const currentTheme = user?.theme || 'dark'; // 'dark' | 'light' | 'pink'
   
   const themeBg = currentTheme === 'light' ? 'bg-white' : (currentTheme === 'pink' ? 'bg-[#FF8DA1]' : 'bg-[#121212]');
-  const textColor = currentTheme === 'light' ? 'text-black' : 'text-white';
-  const mutedText = currentTheme === 'light' ? 'text-stone-500' : (currentTheme === 'pink' ? 'text-white/70' : 'text-stone-400');
-  const boldTextColor = currentTheme === 'light' ? 'text-black font-bold' : 'text-white font-bold';
+  const textColor = currentTheme === 'light' ? 'text-black' : (currentTheme === 'pink' ? 'text-black' : 'text-white');
+  const mutedText = currentTheme === 'light' ? 'text-stone-500' : (currentTheme === 'pink' ? 'text-black/60' : 'text-stone-400');
+  const boldTextColor = currentTheme === 'light' ? 'text-black font-bold' : (currentTheme === 'pink' ? 'text-black font-bold' : 'text-white font-bold');
   
-  const sidebarBg = currentTheme === 'light' ? 'bg-white border-stone-200' : (currentTheme === 'pink' ? 'bg-[#FF8DA1] border-white/20' : 'bg-[#121212] border-white/10');
-  const headerBg = currentTheme === 'light' ? 'bg-white border-stone-200' : (currentTheme === 'pink' ? 'bg-[#FF8DA1] border-white/20' : 'bg-[#121212] border-white/10');
+  const sidebarBg = currentTheme === 'light' ? 'bg-white border-stone-200' : (currentTheme === 'pink' ? 'bg-[#FF8DA1] border-black/10' : 'bg-[#121212] border-white/10');
+  const headerBg = currentTheme === 'light' ? 'bg-white border-stone-200' : (currentTheme === 'pink' ? 'bg-[#FF8DA1] border-black/10' : 'bg-[#121212] border-white/10');
   const cardBg = currentTheme === 'light' ? 'bg-white' : (currentTheme === 'pink' ? 'bg-[#FF8DA1]' : 'bg-[#1e1e1e]');
-  const borderCol = currentTheme === 'light' ? 'border-stone-200' : (currentTheme === 'pink' ? 'border-white/20' : 'border-stone-700');
+  const borderCol = currentTheme === 'light' ? 'border-stone-200' : (currentTheme === 'pink' ? 'border-black/10' : 'border-stone-700');
   
-  const activeNav = 'bg-black text-white border border-white/20 shadow-sm';
-  const navText = 'bg-black text-white border border-white/20 shadow-sm';
+  const isWhite = currentTheme === 'light';
+  const isPink = currentTheme === 'pink';
+  
+  const activeNav = isWhite 
+    ? 'bg-black text-white shadow-lg' 
+    : (isPink 
+      ? 'bg-black/10 backdrop-blur-md text-black border border-black/20 shadow-lg ring-1 ring-black/10'
+      : 'bg-white/10 backdrop-blur-md text-white border border-white/30 shadow-[0_0_20px_rgba(255,255,255,0.15)] ring-1 ring-white/20');
+  const navText = isWhite
+    ? 'text-stone-400 hover:bg-stone-100 hover:text-black transition-all duration-300'
+    : (isPink
+      ? 'text-black/60 hover:bg-black/5 hover:text-black transition-all duration-300'
+      : 'text-white/70 hover:bg-white/5 hover:text-white transition-all duration-300');
 
   const [notifications, setNotifications] = useState<any[]>([]);
   const [showNotifications, setShowNotifications] = useState(false);
@@ -183,10 +202,10 @@ const Layout = ({ children, user, onLogout }: { children: React.ReactNode, user:
                 </nav>
 
               <div className={`p-4 border-t ${borderCol}`}>
-                <button
-                  onClick={onLogout}
-                  className={`flex items-center gap-3 w-full px-4 py-3 rounded-xl transition-all font-bold bg-black text-white`}
-                >
+                  <button
+                    onClick={onLogout}
+                    className={`flex items-center gap-3 w-full px-4 py-3 rounded-xl transition-all font-bold ${isWhite ? 'bg-stone-100 text-stone-600 hover:bg-red-50 hover:text-red-600 border-stone-200' : (isPink ? 'bg-black/10 text-black hover:bg-red-500/20 hover:text-red-600 border-black/10' : 'bg-white/5 text-white hover:bg-red-500/20 hover:text-red-400 hover:backdrop-blur-sm border border-transparent hover:border-red-500/30')}`}
+                  >
                   <LogOut className="w-5 h-5" />
                   Logout
                 </button>
@@ -229,7 +248,7 @@ const Layout = ({ children, user, onLogout }: { children: React.ReactNode, user:
                       exit={{ opacity: 0, y: 10, scale: 0.95 }}
                       className={`absolute right-0 mt-2 w-80 rounded-2xl shadow-2xl z-50 border overflow-hidden ${cardBg} ${borderCol}`}
                     >
-                      <div className={`p-4 border-b flex justify-between items-center ${currentTheme === 'light' ? 'bg-stone-50' : 'bg-white/5'}`}>
+                      <div className={`p-4 border-b flex justify-between items-center ${currentTheme === 'light' ? 'bg-stone-50' : (currentTheme === 'pink' ? 'bg-black/5' : 'bg-white/5')}`}>
                         <h4 className={`font-bold ${textColor}`}>Notifications</h4>
                         <span className="text-xs font-medium px-2 py-1 bg-red-500/20 text-red-400 rounded-full">
                           {notifications.filter(n => !n.read).length} New
@@ -244,11 +263,11 @@ const Layout = ({ children, user, onLogout }: { children: React.ReactNode, user:
                               key={n.id} 
                               onClick={() => markAsRead(n.id)}
                               className={`p-4 border-b last:border-0 cursor-pointer transition-colors ${
-                                !n.read ? (currentTheme === 'light' ? 'bg-stone-50' : 'bg-white/10') : (currentTheme === 'light' ? 'hover:bg-stone-50' : 'hover:bg-white/5')
+                                !n.read ? (currentTheme === 'light' ? 'bg-stone-50' : (currentTheme === 'pink' ? 'bg-black/10' : 'bg-white/10')) : (currentTheme === 'light' ? 'hover:bg-stone-50' : (currentTheme === 'pink' ? 'hover:bg-black/5' : 'hover:bg-white/5'))
                               }`}
                             >
                               <p className={`text-sm font-bold ${textColor}`}>{n.title}</p>
-                              <p className={`text-xs mt-1 ${currentTheme === 'light' ? 'text-stone-600' : 'text-white/60'}`}>{n.message}</p>
+                              <p className={`text-xs mt-1 ${currentTheme === 'light' ? 'text-stone-600' : (currentTheme === 'pink' ? 'text-black/60' : 'text-white/60')}`}>{n.message}</p>
                               <p className={`text-[10px] mt-2 ${mutedText}`}>{format(n.createdAt?.toDate() || new Date(), 'MMM dd, HH:mm')}</p>
                             </div>
                           ))
@@ -392,6 +411,9 @@ export default function App() {
                 <Routes>
                   <Route path="/" element={<Dashboard user={user} partner={partner} />} />
                   <Route path="/expenses" element={<Expenses user={user} partner={partner} />} />
+                  <Route path="/salary" element={<Salary user={user} partner={partner} />} />
+                  <Route path="/breakdown" element={<Breakdown user={user} partner={partner} />} />
+                  <Route path="/couple-overview" element={<CoupleOverview user={user} partner={partner} />} />
                   <Route path="/budgets" element={<Budgets user={user} />} />
                   <Route path="/wishlist" element={<Wishlist user={user} />} />
                   <Route path="/todos" element={<TodoList user={user} />} />
