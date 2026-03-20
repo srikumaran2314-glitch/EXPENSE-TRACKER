@@ -11,12 +11,15 @@ export default function TodoList({ user }: { user: any }) {
   const [dueDate, setDueDate] = useState('');
   const [priority, setPriority] = useState('Medium');
 
-  const isPink = user?.gender === 'Female';
-  const isWhite = user?.theme === 'white';
-  const primaryColor = isWhite ? 'bg-black' : (isPink ? 'bg-[#FF8DA1]' : 'bg-white');
-  const primaryText = isWhite ? 'text-white' : (isPink ? 'text-white' : 'text-black');
-  const cardBg = isWhite ? 'bg-white' : (isPink ? 'bg-[#3D171C]' : 'bg-black');
-  const borderCol = isWhite ? 'border-stone-300' : (isPink ? 'border-white/5' : 'border-white/10');
+  const currentTheme = user?.theme || 'dark';
+  const isPink = currentTheme === 'pink';
+  const isWhite = currentTheme === 'light';
+  const isDark = currentTheme === 'dark';
+
+  const primaryColor = 'bg-black';
+  const primaryText = 'text-white';
+  const cardBg = isWhite ? 'bg-white' : (isPink ? 'bg-[#FF8DA1]' : 'bg-[#1e1e1e]');
+  const borderCol = isWhite ? 'border-stone-200' : (isPink ? 'border-white/20' : 'border-white/10');
   const textColor = isWhite ? 'text-black font-bold' : 'text-white';
   const mutedText = isWhite ? 'text-black font-bold' : 'text-white/60';
   const boldTextColor = isWhite ? 'text-black font-bold' : 'text-white';

@@ -58,19 +58,23 @@ export default function Expenses({ user, partner }: { user: any, partner: any })
   const [purgeConfig, setPurgeConfig] = useState({ month: 'All', year: format(new Date(), 'yyyy') });
   const [isBulkDeleting, setIsBulkDeleting] = useState(false);
 
-  const isPink = user?.gender === 'Female';
-  const isWhite = user?.theme === 'white';
-  const primaryColor = isWhite ? 'bg-black' : (isPink ? 'bg-[#FF8DA1]' : 'bg-stone-800');
-  const primaryHover = isWhite ? 'hover:bg-stone-900' : (isPink ? 'hover:bg-[#FF7A91]' : 'hover:bg-stone-700');
-  const primaryRing = isWhite ? 'focus:ring-black' : (isPink ? 'focus:ring-[#FF8DA1]' : 'focus:ring-white/50');
-  const primaryShadow = isWhite ? 'shadow-stone-200' : (isPink ? 'shadow-[#FF8DA1]/20' : 'shadow-white/10');
-  const primaryBadge = isWhite ? 'bg-stone-100 text-black font-bold' : (isPink ? 'bg-[#FF8DA1]/20 text-white' : 'bg-white/10 text-white');
-  const primaryText = isWhite ? 'text-white' : 'text-white';
-  const cardBg = isWhite ? 'bg-white' : (isPink ? 'bg-[#3D171C]' : 'bg-black');
-  const borderCol = isWhite ? 'border-stone-300' : (isPink ? 'border-white/5' : 'border-white/10');
+  const currentTheme = user?.theme || 'dark';
+  const isPink = currentTheme === 'pink';
+  const isWhite = currentTheme === 'light';
+  const isDark = currentTheme === 'dark';
+
+  const primaryColor = 'bg-black';
+  const primaryHover = 'hover:bg-stone-900';
+  const primaryRing = 'focus:ring-black';
+  const primaryShadow = 'shadow-stone-200';
+  const primaryBadge = 'bg-black text-white font-bold';
+  const primaryText = 'text-white';
+  const cardBg = isWhite ? 'bg-white' : (isPink ? 'bg-[#FF8DA1]' : 'bg-[#1e1e1e]');
+  const borderCol = isWhite ? 'border-stone-200' : (isPink ? 'border-white/20' : 'border-white/10');
   const textColor = isWhite ? 'text-black font-bold' : 'text-white';
   const mutedText = isWhite ? 'text-black font-bold' : 'text-white/60';
   const boldTextColor = isWhite ? 'text-black font-bold' : 'text-white';
+  const inputBg = isWhite ? 'bg-white' : (isPink ? 'bg-white/10' : 'bg-black/40');
   const [isDragging, setIsDragging] = useState(false);
 
   const [formData, setFormData] = useState({
@@ -79,7 +83,7 @@ export default function Expenses({ user, partner }: { user: any, partner: any })
     paymentMode: 'UPI',
     category: 'Food',
     mealType: '',
-    isSplit: true,
+    isSplit: false,
     paidTo: '',
     location: '',
     description: '',
@@ -122,7 +126,7 @@ export default function Expenses({ user, partner }: { user: any, partner: any })
         paymentMode: editingExpense.paymentMode || editingExpense.payment_mode || 'UPI',
         category: editingExpense.category,
         mealType: editingExpense.mealType || '',
-        isSplit: editingExpense.isSplit !== undefined ? editingExpense.isSplit : true,
+        isSplit: editingExpense.isSplit !== undefined ? editingExpense.isSplit : false,
         paidTo: editingExpense.paidTo || editingExpense.paid_to || '',
         location: editingExpense.location || '',
         description: editingExpense.description || '',
@@ -143,7 +147,7 @@ export default function Expenses({ user, partner }: { user: any, partner: any })
       paymentMode: 'UPI',
       category: 'Food',
       mealType: '',
-      isSplit: true,
+      isSplit: false,
       paidTo: '',
       location: '',
       description: '',
@@ -426,7 +430,7 @@ export default function Expenses({ user, partner }: { user: any, partner: any })
             <button
               onClick={handleBulkDelete}
               disabled={isBulkDeleting}
-              className="px-6 py-3 bg-red-50 text-red-600 border border-red-200 rounded-xl font-bold flex items-center gap-2 hover:bg-red-100 transition-all text-sm"
+              className="px-6 py-3 bg-black text-white border border-white/20 rounded-xl font-bold flex items-center gap-2 hover:bg-stone-900 transition-all text-sm"
             >
               <Trash2 className="w-5 h-5" />
               Delete Selected ({selectedIds.length})
@@ -434,7 +438,7 @@ export default function Expenses({ user, partner }: { user: any, partner: any })
           )}
           <button
             onClick={() => setIsPurgeModalOpen(true)}
-            className={`px-6 py-3 ${isPink ? 'bg-[#3D171C]' : 'bg-black'} border ${borderCol} rounded-xl font-bold flex items-center gap-2 hover:bg-white/5 transition-all text-sm text-red-500`}
+            className={`px-6 py-3 bg-black border border-white/20 rounded-xl font-bold flex items-center gap-2 hover:bg-stone-900 transition-all text-sm text-white`}
           >
             <Trash2 className="w-5 h-5" />
             Purge Data
@@ -445,7 +449,7 @@ export default function Expenses({ user, partner }: { user: any, partner: any })
                 const partnerName = expenses.find(e => e.userId !== user.uid)?.paidBy || expenses.find(e => e.userId !== user.uid)?.paid_by;
                 if (partnerName) setPaidByFilter(partnerName);
               }}
-              className={`px-6 py-3 ${isPink ? 'bg-[#3D171C]' : 'bg-black'} border ${borderCol} rounded-xl font-bold flex items-center gap-2 hover:bg-white/5 transition-all text-sm text-white`}
+              className={`px-6 py-3 bg-black border border-white/20 rounded-xl font-bold flex items-center gap-2 hover:bg-stone-900 transition-all text-sm text-white`}
             >
               <User className="w-5 h-5" />
               Her/His Expenses
@@ -453,14 +457,14 @@ export default function Expenses({ user, partner }: { user: any, partner: any })
           )}
           <button
             onClick={exportPDF}
-            className={`px-6 py-3 ${isPink ? 'bg-[#3D171C]' : 'bg-black'} border ${borderCol} rounded-xl font-bold flex items-center gap-2 hover:bg-white/5 transition-all text-sm text-white`}
+            className={`px-6 py-3 bg-black border border-white/20 rounded-xl font-bold flex items-center gap-2 hover:bg-stone-900 transition-all text-sm text-white`}
           >
             <FileText className="w-5 h-5" />
             Export PDF
           </button>
           <button
             onClick={() => setIsModalOpen(true)}
-            className={`${primaryColor} text-white px-6 py-3 rounded-xl font-bold flex items-center gap-2 ${primaryHover} transition-all shadow-lg ${primaryShadow}`}
+            className={`${primaryColor} ${primaryText} px-6 py-3 rounded-xl font-bold flex items-center gap-2 ${primaryHover} transition-all shadow-lg ${primaryShadow}`}
           >
             <Plus className="w-5 h-5" />
             Add Expense
@@ -475,7 +479,7 @@ export default function Expenses({ user, partner }: { user: any, partner: any })
             <input
               type="text"
               placeholder="Search by Paid To or Description..."
-              className={`w-full pl-10 pr-4 py-2 ${isWhite ? 'bg-stone-50 border-stone-300 text-black' : 'bg-white/5 border-white/10 text-white'} border rounded-xl focus:outline-none focus:ring-2 ${primaryRing}`}
+              className={`w-full pl-10 pr-4 py-2 ${isWhite ? 'bg-stone-50 border-stone-300 text-black' : (isPink ? 'bg-white/10 border-white/20 text-white' : 'bg-white/5 border-white/10 text-white')} border rounded-xl focus:outline-none focus:ring-2 ${primaryRing}`}
               value={search}
               onChange={(e) => setSearch(e.target.value)}
             />
@@ -484,14 +488,14 @@ export default function Expenses({ user, partner }: { user: any, partner: any })
             <Calendar className={`w-5 h-5 ${isWhite ? 'text-black' : 'text-white/40'} shrink-0`} />
             <input 
               type="date" 
-              className={`flex-1 px-3 py-2 ${isWhite ? 'bg-stone-50 border-stone-300 text-black' : 'bg-white/5 border-white/10 text-white'} border rounded-xl text-sm outline-none`}
+              className={`flex-1 px-3 py-2 ${isWhite ? 'bg-stone-50 border-stone-300 text-black' : (isPink ? 'bg-white/10 border-white/20 text-white' : 'bg-white/5 border-white/10 text-white')} border rounded-xl text-sm outline-none`}
               value={dateRange.start}
               onChange={(e) => setDateRange({ ...dateRange, start: e.target.value })}
             />
             <span className={mutedText}>to</span>
             <input 
               type="date" 
-              className={`flex-1 px-3 py-2 ${isWhite ? 'bg-stone-50 border-stone-300 text-black' : 'bg-white/5 border-white/10 text-white'} border rounded-xl text-sm outline-none`}
+              className={`flex-1 px-3 py-2 ${isWhite ? 'bg-stone-50 border-stone-300 text-black' : (isPink ? 'bg-white/10 border-white/20 text-white' : 'bg-white/5 border-white/10 text-white')} border rounded-xl text-sm outline-none`}
               value={dateRange.end}
               onChange={(e) => setDateRange({ ...dateRange, end: e.target.value })}
             />
@@ -505,7 +509,7 @@ export default function Expenses({ user, partner }: { user: any, partner: any })
           </div>
           
           <select 
-            className={`px-3 py-1.5 ${isWhite ? 'bg-stone-50 border-stone-200 text-stone-900' : 'bg-white/5 border-white/10 text-white'} border rounded-lg text-sm outline-none focus:ring-2 ${primaryRing}`}
+            className={`px-3 py-1.5 ${isWhite ? 'bg-stone-50 border-stone-200 text-stone-900' : (isPink ? 'bg-white/10 border-white/20 text-white' : 'bg-white/5 border-white/10 text-white')} border rounded-lg text-sm outline-none focus:ring-2 ${primaryRing}`}
             value={paidByFilter}
             onChange={(e) => setPaidByFilter(e.target.value)}
           >
@@ -514,7 +518,7 @@ export default function Expenses({ user, partner }: { user: any, partner: any })
           </select>
 
           <select 
-            className={`px-3 py-1.5 ${isWhite ? 'bg-stone-50 border-stone-200 text-stone-900' : 'bg-white/5 border-white/10 text-white'} border rounded-lg text-sm outline-none focus:ring-2 ${primaryRing}`}
+            className={`px-3 py-1.5 ${isWhite ? 'bg-stone-50 border-stone-200 text-stone-900' : (isPink ? 'bg-white/10 border-white/20 text-white' : 'bg-white/5 border-white/10 text-white')} border rounded-lg text-sm outline-none focus:ring-2 ${primaryRing}`}
             value={modeFilter}
             onChange={(e) => setModeFilter(e.target.value)}
           >
@@ -523,7 +527,7 @@ export default function Expenses({ user, partner }: { user: any, partner: any })
           </select>
 
           <select 
-            className={`px-3 py-1.5 ${isWhite ? 'bg-stone-50 border-stone-200 text-stone-900' : 'bg-white/5 border-white/10 text-white'} border rounded-lg text-sm outline-none focus:ring-2 ${primaryRing}`}
+            className={`px-3 py-1.5 ${isWhite ? 'bg-stone-50 border-stone-200 text-stone-900' : (isPink ? 'bg-white/10 border-white/20 text-white' : 'bg-white/5 border-white/10 text-white')} border rounded-lg text-sm outline-none focus:ring-2 ${primaryRing}`}
             value={monthFilter}
             onChange={(e) => setMonthFilter(e.target.value)}
           >
@@ -532,7 +536,7 @@ export default function Expenses({ user, partner }: { user: any, partner: any })
           </select>
 
           <select 
-            className={`px-3 py-1.5 ${isWhite ? 'bg-stone-50 border-stone-200 text-stone-900' : 'bg-white/5 border-white/10 text-white'} border rounded-lg text-sm outline-none focus:ring-2 ${primaryRing}`}
+            className={`px-3 py-1.5 ${isWhite ? 'bg-stone-50 border-stone-200 text-stone-900' : (isPink ? 'bg-white/10 border-white/20 text-white' : 'bg-white/5 border-white/10 text-white')} border rounded-lg text-sm outline-none focus:ring-2 ${primaryRing}`}
             value={yearFilter}
             onChange={(e) => setYearFilter(e.target.value)}
           >
@@ -564,11 +568,7 @@ export default function Expenses({ user, partner }: { user: any, partner: any })
             <button
               key={cat}
               onClick={() => setFilter(cat)}
-              className={`px-4 py-2 rounded-xl text-sm font-bold whitespace-nowrap transition-all ${
-                filter === cat 
-                  ? `${primaryColor} ${primaryText} shadow-lg ${primaryShadow}` 
-                  : `${isWhite ? 'bg-stone-100 text-black hover:bg-stone-200' : 'bg-white/5 text-white/60 hover:bg-white/10'}`
-              }`}
+              className={`px-4 py-2 rounded-xl text-sm font-bold whitespace-nowrap transition-all bg-black text-white shadow-lg shadow-stone-200`}
             >
               {cat}
             </button>
@@ -580,7 +580,7 @@ export default function Expenses({ user, partner }: { user: any, partner: any })
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse">
             <thead>
-              <tr className={`${isWhite ? 'bg-stone-50' : (isPink ? 'bg-stone-100' : 'bg-white/5')} border-b ${borderCol}`}>
+              <tr className={`${isWhite ? 'bg-stone-50' : (isPink ? 'bg-white/10' : 'bg-white/5')} border-b ${borderCol}`}>
                 <th className="px-6 py-4">
                   <input 
                     type="checkbox" 
@@ -606,7 +606,7 @@ export default function Expenses({ user, partner }: { user: any, partner: any })
                 <tr><td colSpan={6} className={`px-6 py-12 text-center ${mutedText}`}>No expenses found</td></tr>
               ) : (
                 filteredExpenses.map((expense) => (
-                  <tr key={expense.id} className={`${isPink ? 'hover:bg-stone-50' : 'hover:bg-white/5'} transition-colors group ${selectedIds.includes(expense.id) ? (isPink ? 'bg-pink-50/50' : 'bg-white/5') : ''}`}>
+                  <tr key={expense.id} className={`${isPink ? 'hover:bg-white/10' : 'hover:bg-white/5'} transition-colors group ${selectedIds.includes(expense.id) ? (isPink ? 'bg-white/20' : 'bg-white/5') : ''}`}>
                     <td className="px-6 py-4">
                       <input 
                         type="checkbox" 
@@ -701,7 +701,7 @@ export default function Expenses({ user, partner }: { user: any, partner: any })
                       <div className="flex items-center justify-end gap-2">
                         <button 
                           onClick={() => setViewingExpense(expense)}
-                          className={`p-2 ${isWhite ? 'hover:bg-stone-100 text-black' : 'hover:bg-stone-100 text-stone-400 hover:text-stone-900'} rounded-lg transition-all`}
+                          className={`p-2 bg-black text-white rounded-lg transition-all shadow-sm`}
                           title="View Details"
                         >
                           <ChevronRight className="w-4 h-4" />
@@ -709,7 +709,7 @@ export default function Expenses({ user, partner }: { user: any, partner: any })
                         {expense.receiptUrl && (
                           <button 
                             onClick={() => window.open(expense.receiptUrl, '_blank')}
-                            className={`p-2 ${isWhite ? 'hover:bg-stone-100 text-black' : 'hover:bg-stone-100 text-stone-400 hover:text-stone-900'} rounded-lg transition-all`}
+                            className={`p-2 bg-black text-white rounded-lg transition-all shadow-sm`}
                             title="View Receipt"
                           >
                             <Download className="w-4 h-4" />
@@ -717,13 +717,13 @@ export default function Expenses({ user, partner }: { user: any, partner: any })
                         )}
                         <button 
                           onClick={() => setEditingExpense(expense)}
-                          className={`p-2 ${isWhite ? 'hover:bg-stone-100 text-black' : 'hover:bg-stone-100 text-stone-400 hover:text-stone-900'} rounded-lg opacity-0 group-hover:opacity-100 transition-all`}
+                          className={`p-2 bg-black text-white rounded-lg opacity-0 group-hover:opacity-100 transition-all shadow-sm`}
                         >
                           <Edit2 className="w-4 h-4" />
                         </button>
                         <button 
                           onClick={() => setDeleteId(expense.id)}
-                          className={`p-2 hover:bg-red-50 ${isWhite ? 'text-black' : 'text-stone-400'} hover:text-red-600 rounded-lg opacity-0 group-hover:opacity-100 transition-all`}
+                          className={`p-2 bg-black text-white hover:bg-red-600 rounded-lg opacity-0 group-hover:opacity-100 transition-all shadow-sm`}
                         >
                           <Trash2 className="w-4 h-4" />
                         </button>
@@ -741,12 +741,12 @@ export default function Expenses({ user, partner }: { user: any, partner: any })
         
         {/* Totals Footer */}
         {!loading && filteredExpenses.length > 0 && (
-          <div className={`p-6 border-t ${isPink ? 'bg-[#FFF0F3]/50' : 'bg-white/5'} grid grid-cols-1 md:grid-cols-3 gap-4`}>
-            <div className={`flex items-center justify-between p-4 ${isPink ? 'bg-white' : 'bg-white/5'} rounded-2xl border ${borderCol} shadow-sm`}>
+          <div className={`p-6 border-t ${isPink ? 'bg-white/10' : 'bg-white/5'} grid grid-cols-1 md:grid-cols-3 gap-4`}>
+            <div className={`flex items-center justify-between p-4 ${isPink ? 'bg-white/10' : 'bg-white/5'} rounded-2xl border ${borderCol} shadow-sm`}>
               <span className={`text-sm font-bold ${mutedText} uppercase`}>Total Filtered</span>
               <span className={`text-xl font-black ${primaryText}`}>₹{totalAmount.toLocaleString()}</span>
             </div>
-            <div className={`flex items-center justify-between p-4 ${isPink ? 'bg-white' : 'bg-white/5'} rounded-2xl border ${borderCol} shadow-sm`}>
+            <div className={`flex items-center justify-between p-4 ${isPink ? 'bg-white/10' : 'bg-white/5'} rounded-2xl border ${borderCol} shadow-sm`}>
               <div className="flex flex-col">
                 <span className={`text-[10px] font-bold ${mutedText} uppercase`}>Owed to Me</span>
                 <span className="text-lg font-black text-emerald-500">₹{totalOwedToMe.toLocaleString()}</span>
@@ -756,9 +756,9 @@ export default function Expenses({ user, partner }: { user: any, partner: any })
                 <span className="text-lg font-black text-rose-500">₹{totalIOwe.toLocaleString()}</span>
               </div>
             </div>
-            <div className={`flex items-center justify-between p-4 ${netBalance >= 0 ? 'bg-emerald-50' : 'bg-rose-50'} rounded-2xl border ${netBalance >= 0 ? 'border-emerald-100' : 'border-rose-100'} shadow-sm`}>
-              <span className={`text-sm font-bold ${isWhite ? 'text-black' : (netBalance >= 0 ? 'text-emerald-700' : 'text-rose-700')} uppercase`}>Net Balance</span>
-              <span className={`text-xl font-black ${isWhite ? 'text-black' : (netBalance >= 0 ? 'text-emerald-600' : 'text-rose-600')}`}>
+            <div className={`flex items-center justify-between p-4 ${netBalance >= 0 ? (isWhite ? 'bg-emerald-50' : 'bg-emerald-500/20') : (isWhite ? 'bg-rose-50' : 'bg-rose-500/20')} rounded-2xl border ${netBalance >= 0 ? (isWhite ? 'border-emerald-100' : 'border-emerald-500/20') : (isWhite ? 'border-rose-100' : 'border-rose-500/20')} shadow-sm`}>
+              <span className={`text-sm font-bold ${isWhite ? 'text-black' : (netBalance >= 0 ? 'text-emerald-400' : 'text-rose-400')} uppercase`}>Net Balance</span>
+              <span className={`text-xl font-black ${isWhite ? 'text-black' : (netBalance >= 0 ? 'text-emerald-400' : 'text-rose-400')}`}>
                 {netBalance >= 0 ? '+' : ''}₹{netBalance.toLocaleString()}
               </span>
             </div>
@@ -792,7 +792,7 @@ export default function Expenses({ user, partner }: { user: any, partner: any })
                         required
                         type="number"
                         step="0.01"
-                        className={`w-full pl-8 pr-4 py-3 ${isWhite ? 'bg-stone-50 border-stone-200' : (isPink ? 'bg-stone-50 border-stone-200' : 'bg-white/5 border-white/10')} border rounded-xl focus:ring-2 ${primaryRing} outline-none text-lg font-bold ${textColor}`}
+                        className={`w-full pl-8 pr-4 py-3 ${inputBg} border rounded-xl focus:ring-2 ${primaryRing} outline-none text-lg font-bold ${textColor} ${borderCol}`}
                         value={formData.amount}
                         onChange={(e) => setFormData({ ...formData, amount: e.target.value })}
                         placeholder="0.00"
@@ -803,7 +803,7 @@ export default function Expenses({ user, partner }: { user: any, partner: any })
                   <div className="col-span-2">
                     <label className={`block text-xs font-bold ${mutedText} uppercase mb-2`}>Category *</label>
                     <select
-                      className={`w-full px-4 py-3 ${isWhite ? 'bg-stone-50 border-stone-200' : (isPink ? 'bg-stone-50 border-stone-200' : 'bg-white/5 border-white/10')} border rounded-xl focus:ring-2 ${primaryRing} outline-none ${textColor}`}
+                      className={`w-full px-4 py-3 ${inputBg} border rounded-xl focus:ring-2 ${primaryRing} outline-none ${textColor} ${borderCol}`}
                       value={formData.category}
                       onChange={(e) => setFormData({ ...formData, category: e.target.value, mealType: e.target.value === 'Food' ? formData.mealType : '' })}
                     >
@@ -836,7 +836,7 @@ export default function Expenses({ user, partner }: { user: any, partner: any })
                   <div className="col-span-2">
                     <label className={`block text-xs font-bold ${mutedText} uppercase mb-2`}>Payment Mode</label>
                     <select
-                      className={`w-full px-4 py-3 ${isWhite ? 'bg-stone-50 border-stone-200' : (isPink ? 'bg-stone-50 border-stone-200' : 'bg-white/5 border-white/10')} border rounded-xl focus:ring-2 ${primaryRing} outline-none ${textColor}`}
+                      className={`w-full px-4 py-3 ${inputBg} border rounded-xl focus:ring-2 ${primaryRing} outline-none ${textColor} ${borderCol}`}
                       value={formData.paymentMode}
                       onChange={(e) => setFormData({ ...formData, paymentMode: e.target.value })}
                     >
@@ -849,7 +849,7 @@ export default function Expenses({ user, partner }: { user: any, partner: any })
                     <input
                       required
                       type="text"
-                      className={`w-full px-4 py-3 ${isWhite ? 'bg-stone-50 border-stone-200' : (isPink ? 'bg-stone-50 border-stone-200' : 'bg-white/5 border-white/10')} border rounded-xl focus:ring-2 ${primaryRing} outline-none ${textColor}`}
+                      className={`w-full px-4 py-3 ${inputBg} border rounded-xl focus:ring-2 ${primaryRing} outline-none ${textColor} ${borderCol}`}
                       value={formData.paidTo}
                       onChange={(e) => setFormData({ ...formData, paidTo: e.target.value })}
                       placeholder="e.g. Starbucks, Amazon"
@@ -857,13 +857,13 @@ export default function Expenses({ user, partner }: { user: any, partner: any })
                   </div>
 
                   <div className="col-span-2">
-                    <label className={`block text-xs font-bold ${mutedText} uppercase mb-2`}>Location *</label>
+                    <label className={`block text-xs font-bold ${mutedText} uppercase mb-2`}>Location or Shop Name *</label>
                     <div className="relative">
                       <MapPin className={`absolute left-4 top-1/2 -translate-y-1/2 ${mutedText} w-4 h-4`} />
                       <input
                         required
                         type="text"
-                        className={`w-full pl-10 pr-4 py-3 ${isWhite ? 'bg-stone-50 border-stone-200' : (isPink ? 'bg-stone-50 border-stone-200' : 'bg-white/5 border-white/10')} border rounded-xl focus:ring-2 ${primaryRing} outline-none ${textColor}`}
+                        className={`w-full pl-10 pr-4 py-3 ${inputBg} border rounded-xl focus:ring-2 ${primaryRing} outline-none ${textColor} ${borderCol}`}
                         value={formData.location}
                         onChange={(e) => setFormData({ ...formData, location: e.target.value })}
                         placeholder="e.g. City, Mall, or Shop Name"
@@ -948,7 +948,7 @@ export default function Expenses({ user, partner }: { user: any, partner: any })
                   <div className="col-span-2">
                     <label className={`block text-xs font-bold ${mutedText} uppercase mb-2`}>Paid By *</label>
                     <select
-                      className={`w-full px-4 py-3 ${isWhite ? 'bg-stone-50 border-stone-200' : (isPink ? 'bg-stone-50 border-stone-200' : 'bg-white/5 border-white/10')} border rounded-xl focus:ring-2 ${primaryRing} outline-none ${textColor}`}
+                      className={`w-full px-4 py-3 ${inputBg} border rounded-xl focus:ring-2 ${primaryRing} outline-none ${textColor} ${borderCol}`}
                       value={formData.paidBy}
                       onChange={(e) => setFormData({ ...formData, paidBy: e.target.value })}
                     >
@@ -963,7 +963,7 @@ export default function Expenses({ user, partner }: { user: any, partner: any })
                       <ArrowDownLeft className={`absolute left-4 top-1/2 -translate-y-1/2 ${mutedText} w-4 h-4`} />
                       <input
                         type="text"
-                        className={`w-full pl-10 pr-4 py-3 ${isPink ? 'bg-stone-50 border-stone-200' : 'bg-white/5 border-white/10'} border rounded-xl focus:ring-2 ${primaryRing} outline-none ${textColor}`}
+                        className={`w-full pl-10 pr-4 py-3 ${inputBg} border rounded-xl focus:ring-2 ${primaryRing} outline-none ${textColor} ${borderCol}`}
                         value={formData.receivableFrom}
                         onChange={(e) => setFormData({ ...formData, receivableFrom: e.target.value })}
                         placeholder="e.g. Friend's Name (if they owe you both)"
@@ -977,7 +977,7 @@ export default function Expenses({ user, partner }: { user: any, partner: any })
                     <input
                       required
                       type="date"
-                      className={`w-full px-4 py-3 ${isWhite ? 'bg-stone-50 border-stone-200' : (isPink ? 'bg-stone-50 border-stone-200' : 'bg-white/5 border-white/10')} border rounded-xl focus:ring-2 ${primaryRing} outline-none ${textColor}`}
+                      className={`w-full px-4 py-3 ${inputBg} border rounded-xl focus:ring-2 ${primaryRing} outline-none ${textColor} ${borderCol}`}
                       value={formData.date}
                       onChange={(e) => setFormData({ ...formData, date: e.target.value })}
                     />
@@ -988,7 +988,7 @@ export default function Expenses({ user, partner }: { user: any, partner: any })
                     <input
                       required
                       type="text"
-                      className={`w-full px-4 py-3 ${isWhite ? 'bg-stone-50 border-stone-200' : (isPink ? 'bg-stone-50 border-stone-200' : 'bg-white/5 border-white/10')} border rounded-xl focus:ring-2 ${primaryRing} outline-none ${textColor}`}
+                      className={`w-full px-4 py-3 ${inputBg} border rounded-xl focus:ring-2 ${primaryRing} outline-none ${textColor} ${borderCol}`}
                       value={formData.description}
                       onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                       placeholder="e.g. Dinner with friends"
@@ -998,7 +998,7 @@ export default function Expenses({ user, partner }: { user: any, partner: any })
 
                 <button
                   type="submit"
-                  className={`w-full ${isPink ? 'bg-[#FF8DA1] text-white' : 'bg-white text-black'} py-4 rounded-2xl font-bold text-lg transition-all shadow-xl shadow-emerald-500/10 hover:scale-[1.01] active:scale-[0.99]`}
+                  className={`w-full ${isWhite ? 'bg-black text-white' : 'bg-white text-black'} py-4 rounded-2xl font-bold text-lg transition-all shadow-xl hover:scale-[1.01] active:scale-[0.99]`}
                 >
                   {editingExpense ? 'Update Expense' : 'Save Expense'}
                 </button>
@@ -1048,8 +1048,8 @@ export default function Expenses({ user, partner }: { user: any, partner: any })
 
                 <div className="space-y-6">
                   <div className="flex items-center gap-4">
-                    <div className={`w-12 h-12 rounded-2xl flex items-center justify-center ${isPink ? 'bg-pink-100 text-pink-600' : 'bg-white/10 text-white'}`}>
-                      <User className="w-6 h-6" />
+                    <div className={`w-12 h-12 rounded-2xl flex items-center justify-center ${inputBg} border ${borderCol}`}>
+                      <User className={`w-6 h-6 ${mutedText}`} />
                     </div>
                     <div>
                       <p className={`text-xs font-bold ${mutedText} uppercase`}>Paid By</p>
@@ -1059,7 +1059,7 @@ export default function Expenses({ user, partner }: { user: any, partner: any })
 
                   {viewingExpense.description && (
                     <div className="flex items-start gap-4">
-                      <div className={`w-12 h-12 rounded-2xl flex items-center justify-center ${isPink ? 'bg-stone-100' : 'bg-white/10'} shrink-0`}>
+                      <div className={`w-12 h-12 rounded-2xl flex items-center justify-center ${inputBg} border ${borderCol} shrink-0`}>
                         <FileText className={`w-6 h-6 ${mutedText}`} />
                       </div>
                       <div>
@@ -1071,11 +1071,11 @@ export default function Expenses({ user, partner }: { user: any, partner: any })
 
                   {viewingExpense.location && (
                     <div className="flex items-center gap-4">
-                      <div className={`w-12 h-12 rounded-2xl flex items-center justify-center ${isPink ? 'bg-stone-100' : 'bg-white/10'}`}>
+                      <div className={`w-12 h-12 rounded-2xl flex items-center justify-center ${inputBg} border ${borderCol}`}>
                         <MapPin className={`w-6 h-6 ${mutedText}`} />
                       </div>
                       <div>
-                        <p className={`text-xs font-bold ${mutedText} uppercase`}>Location</p>
+                        <p className={`text-xs font-bold ${mutedText} uppercase`}>Location or Shop Name</p>
                         <p className={`${textColor}`}>{viewingExpense.location}</p>
                       </div>
                     </div>
@@ -1168,7 +1168,7 @@ export default function Expenses({ user, partner }: { user: any, partner: any })
                   <div>
                     <label className={`block text-xs font-bold ${mutedText} uppercase mb-2`}>Select Month</label>
                     <select
-                      className={`w-full px-4 py-3 ${isPink ? 'bg-stone-50 border-stone-200' : 'bg-white/5 border-white/10'} border rounded-xl outline-none ${textColor}`}
+                      className={`w-full px-4 py-3 ${inputBg} border rounded-xl outline-none ${textColor} ${borderCol}`}
                       value={purgeConfig.month}
                       onChange={(e) => setPurgeConfig({ ...purgeConfig, month: e.target.value })}
                     >
@@ -1180,7 +1180,7 @@ export default function Expenses({ user, partner }: { user: any, partner: any })
                   <div>
                     <label className={`block text-xs font-bold ${mutedText} uppercase mb-2`}>Select Year</label>
                     <select
-                      className={`w-full px-4 py-3 ${isPink ? 'bg-stone-50 border-stone-200' : 'bg-white/5 border-white/10'} border rounded-xl outline-none ${textColor}`}
+                      className={`w-full px-4 py-3 ${inputBg} border rounded-xl outline-none ${textColor} ${borderCol}`}
                       value={purgeConfig.year}
                       onChange={(e) => setPurgeConfig({ ...purgeConfig, year: e.target.value })}
                     >

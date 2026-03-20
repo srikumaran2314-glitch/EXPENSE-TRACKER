@@ -221,16 +221,19 @@ export default function Chat({ user, partner }: { user: any, partner: any }) {
     }
   };
 
-  const isPink = user?.gender === 'Female';
-  const isWhite = user?.theme === 'white';
-  const primaryColor = isWhite ? 'bg-black' : (isPink ? 'bg-[#FF8DA1]' : 'bg-white');
-  const primaryHover = isWhite ? 'hover:bg-stone-900' : (isPink ? 'hover:bg-[#FF7A91]' : 'hover:bg-white/10');
-  const primaryText = isWhite ? 'text-white' : (isPink ? 'text-white' : 'text-black');
-  const primaryBadge = isWhite ? 'bg-stone-100 text-black font-bold' : (isPink ? 'bg-[#3D171C] text-[#FF8DA1]' : 'bg-stone-800 text-white');
-  const primaryRing = isWhite ? 'focus-within:ring-black' : (isPink ? 'focus-within:ring-[#FF8DA1]' : 'focus-within:ring-white');
-  const primaryBorder = isWhite ? 'border-stone-300' : (isPink ? 'border-[#FF8DA1]/20' : 'border-white/20');
-  const cardBg = isWhite ? 'bg-white' : (isPink ? 'bg-[#3D171C]' : 'bg-black');
-  const borderCol = isWhite ? 'border-stone-300' : (isPink ? 'border-white/5' : 'border-white/10');
+  const currentTheme = user?.theme || 'dark';
+  const isPink = currentTheme === 'pink';
+  const isWhite = currentTheme === 'light';
+  const isDark = currentTheme === 'dark';
+
+  const primaryColor = 'bg-black';
+  const primaryHover = 'hover:opacity-90';
+  const primaryText = 'text-white';
+  const primaryBadge = isWhite ? 'bg-stone-100 text-black font-bold' : (isPink ? 'bg-white/20 text-white' : 'bg-white/10 text-white');
+  const primaryRing = isWhite ? 'focus-within:ring-black' : (isPink ? 'focus-within:ring-white/50' : 'focus-within:ring-white/50');
+  const primaryBorder = isWhite ? 'border-stone-300' : (isPink ? 'border-white/20' : 'border-white/20');
+  const cardBg = isWhite ? 'bg-white' : (isPink ? 'bg-[#FF8DA1]' : 'bg-[#1e1e1e]');
+  const borderCol = isWhite ? 'border-stone-200' : (isPink ? 'border-white/20' : 'border-white/10');
   const textColor = isWhite ? 'text-black font-bold' : 'text-white';
   const mutedText = isWhite ? 'text-black font-bold' : 'text-white/60';
   const boldTextColor = isWhite ? 'text-black font-bold' : 'text-white';
@@ -723,8 +726,8 @@ export default function Chat({ user, partner }: { user: any, partner: any }) {
                 <div 
                   className={`px-4 lg:px-6 py-2 lg:py-3 rounded-2xl shadow-sm relative group/msg ${
                     msg.senderId === user.uid 
-                      ? `${isWhite ? 'bg-black text-white' : 'bg-black text-white'} rounded-tr-none` 
-                      : `${isWhite ? 'bg-stone-100 text-black' : 'bg-[#FF8DA1] text-white'} rounded-tl-none`
+                      ? (isWhite ? 'bg-black text-white' : (isPink ? 'bg-white/20 text-white' : 'bg-white text-black')) + ' rounded-tr-none'
+                      : (isWhite ? 'bg-stone-100 text-black' : (isPink ? 'bg-black/20 text-white' : 'bg-white/10 text-white')) + ' rounded-tl-none'
                   }`}
                 >
                   {msg.isPinned && (
@@ -885,7 +888,7 @@ export default function Chat({ user, partner }: { user: any, partner: any }) {
         )}
       </div>
 
-      <form onSubmit={handleSend} className={`p-6 ${isWhite ? 'bg-white border-stone-100' : 'bg-black border-white/10'} border-t`}>
+      <form onSubmit={handleSend} className={`p-6 ${isWhite ? 'bg-white border-stone-100' : (isPink ? 'bg-[#FF8DA1] border-white/20' : 'bg-black border-white/10')} border-t`}>
         {selectedExpenseId && (
           <div className={`mb-4 p-3 ${isWhite ? 'bg-stone-50 border-stone-200' : 'bg-white/5 border-white/10'} rounded-2xl border flex items-center justify-between`}>
             <div className="flex items-center gap-3">
@@ -1025,10 +1028,10 @@ export default function Chat({ user, partner }: { user: any, partner: any }) {
                   ))
                 )}
               </div>
-              <div className={`p-6 ${isWhite ? 'bg-stone-50' : 'bg-white/5'} border-t ${borderCol}`}>
+              <div className={`p-6 bg-black border-t ${borderCol}`}>
                 <button 
                   onClick={() => setIsExpenseModalOpen(false)}
-                  className={`w-full py-3 rounded-xl font-bold ${isWhite ? 'text-stone-600 hover:bg-stone-200' : 'text-white/60 hover:bg-white/10'} transition-all`}
+                  className={`w-full py-3 rounded-xl font-bold text-white hover:opacity-90 transition-all`}
                 >
                   Cancel
                 </button>
@@ -1123,10 +1126,10 @@ export default function Chat({ user, partner }: { user: any, partner: any }) {
                   </button>
                 ))}
               </div>
-              <div className={`p-6 ${isWhite ? 'bg-stone-50' : 'bg-white/5'} border-t ${borderCol}`}>
+              <div className={`p-6 bg-black border-t ${borderCol}`}>
                 <button 
                   onClick={() => setIsBackgroundModalOpen(false)}
-                  className={`w-full py-3 rounded-xl font-bold ${isWhite ? 'text-stone-600 hover:bg-stone-200' : 'text-white/60 hover:bg-white/10'} transition-all`}
+                  className={`w-full py-3 rounded-xl font-bold text-white hover:opacity-90 transition-all`}
                 >
                   Close
                 </button>

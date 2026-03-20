@@ -43,16 +43,19 @@ export default function Dashboard({ user, partner }: { user: any, partner: any }
   const [wishlist, setWishlist] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
-  const isPink = user?.gender === 'Female';
-  const isWhite = user?.theme === 'white';
-  const primaryColor = isWhite ? '#000000' : (isPink ? '#FF8DA1' : '#FFFFFF');
-  const primaryBg = isWhite ? 'bg-black' : (isPink ? 'bg-[#FF8DA1]' : 'bg-white');
-  const primaryText = isWhite ? 'text-white' : (isPink ? 'text-white' : 'text-black');
-  const cardBg = isWhite ? 'bg-white' : (isPink ? 'bg-[#3D171C]' : 'bg-black');
+  const currentTheme = user?.theme || 'dark';
+  const isPink = currentTheme === 'pink';
+  const isWhite = currentTheme === 'light';
+  const isDark = currentTheme === 'dark';
+
+  const primaryColor = isWhite ? '#000000' : (isPink ? '#FFFFFF' : '#FFFFFF');
+  const primaryBg = 'bg-black';
+  const primaryText = 'text-white';
+  const cardBg = isWhite ? 'bg-white' : (isPink ? 'bg-[#FF8DA1]' : 'bg-[#1e1e1e]');
   const textColor = isWhite ? 'text-black font-bold' : 'text-white';
   const mutedText = isWhite ? 'text-black font-bold' : 'text-white/60';
   const boldTextColor = isWhite ? 'text-black font-bold' : 'text-white';
-  const borderCol = isWhite ? 'border-stone-300' : (isPink ? 'border-white/5' : 'border-white/10');
+  const borderCol = isWhite ? 'border-stone-200' : (isPink ? 'border-white/20' : 'border-white/10');
 
   useEffect(() => {
     if (!user?.uid) return;
@@ -254,11 +257,7 @@ export default function Dashboard({ user, partner }: { user: any, partner: any }
               <button
                 key={f}
                 onClick={() => setChartFilter(f)}
-                className={`px-4 py-1.5 text-xs font-bold rounded-lg transition-all ${
-                  chartFilter === f
-                    ? `${primaryBg} ${primaryText} shadow-sm`
-                    : `${isWhite ? 'text-stone-400 hover:text-stone-600' : 'text-white/40 hover:text-white/60'}`
-                }`}
+                className={`px-4 py-1.5 text-xs font-bold rounded-lg transition-all bg-black text-white shadow-sm`}
               >
                 {f}
               </button>
@@ -292,11 +291,11 @@ export default function Dashboard({ user, partner }: { user: any, partner: any }
                 </Pie>
                 <Tooltip 
                   contentStyle={{ 
-                    backgroundColor: isWhite ? 'white' : '#1c1917', 
-                    borderColor: isWhite ? '#e7e5e4' : '#292524',
+                    backgroundColor: isWhite ? 'white' : (isPink ? '#FF8DA1' : '#1c1917'), 
+                    borderColor: isWhite ? '#e7e5e4' : (isPink ? 'rgba(255,255,255,0.2)' : '#292524'),
                     color: isWhite ? '#1c1917' : 'white',
                     borderRadius: '12px',
-                    border: '1px solid #292524'
+                    border: '1px solid ' + (isWhite ? '#e7e5e4' : (isPink ? 'rgba(255,255,255,0.2)' : '#292524'))
                   }}
                   itemStyle={{ color: isWhite ? '#1c1917' : 'white' }}
                 />
@@ -338,7 +337,7 @@ export default function Dashboard({ user, partner }: { user: any, partner: any }
                 />
                 <Tooltip 
                   contentStyle={{ 
-                    backgroundColor: isWhite ? 'white' : (isPink ? '#3D171C' : '#1c1917'), 
+                    backgroundColor: isWhite ? 'white' : (isPink ? '#FF8DA1' : '#1c1917'), 
                     borderColor: isWhite ? '#e7e5e4' : 'rgba(255,255,255,0.1)',
                     color: isWhite ? '#1c1917' : 'white',
                     borderRadius: '16px', 
@@ -458,11 +457,7 @@ export default function Dashboard({ user, partner }: { user: any, partner: any }
               <button
                 key={f}
                 onClick={() => setRecentExpenseFilter(f)}
-                className={`px-3 py-1 text-xs font-bold rounded-lg transition-all ${
-                  recentExpenseFilter === f
-                    ? `${primaryBg} ${isWhite ? 'text-white' : 'text-stone-900'} shadow-sm`
-                    : `${isWhite ? 'text-stone-400 hover:text-stone-600' : 'text-white/40 hover:text-white/60'}`
-                }`}
+                className={`px-3 py-1 text-xs font-bold rounded-lg transition-all bg-black text-white shadow-sm`}
               >
                 {f}
               </button>
@@ -483,7 +478,7 @@ export default function Dashboard({ user, partner }: { user: any, partner: any }
               className={`flex items-center justify-between p-4 rounded-2xl border ${borderCol} hover:bg-white/5 transition-all`}
             >
               <div className="flex items-center gap-4">
-                <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${isPink ? 'bg-[#FF8DA1]/10 text-[#FF8DA1]' : 'bg-white/10 text-white/40'}`}>
+                <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${isPink ? 'bg-white/20 text-white' : 'bg-white/10 text-white/40'}`}>
                   <Receipt className="w-5 h-5" />
                 </div>
                 <div>
@@ -499,7 +494,7 @@ export default function Dashboard({ user, partner }: { user: any, partner: any }
                 </div>
               </div>
               <div className="text-right">
-                <p className={`font-bold ${isPink ? 'text-[#FF8DA1]' : 'text-white'}`}>₹{expense.amount.toLocaleString()}</p>
+                <p className={`font-bold ${isPink ? 'text-white' : 'text-white'}`}>₹{expense.amount.toLocaleString()}</p>
                 <p className={`text-[10px] ${mutedText}`}>Paid by {expense.paidBy || expense.paid_by}</p>
               </div>
             </div>

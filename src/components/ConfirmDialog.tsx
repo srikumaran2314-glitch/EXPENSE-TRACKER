@@ -41,18 +41,16 @@ export default function ConfirmDialog({
               <p className="text-white/60 mt-2 text-sm">{message}</p>
             </div>
             
-            <div className="p-6 bg-white/5 flex gap-3">
+            <div className="p-6 bg-black flex gap-3">
               <button
                 onClick={onCancel}
-                className="flex-1 py-3 rounded-xl font-bold text-white/60 hover:bg-white/10 transition-all"
+                className="flex-1 py-3 rounded-xl font-bold bg-black text-white border border-white/10 hover:bg-white/10 transition-all"
               >
                 {cancelText}
               </button>
               <button
                 onClick={onConfirm}
-                className={`flex-1 py-3 rounded-xl font-bold text-white transition-all shadow-lg ${
-                  isDanger ? 'bg-red-600 hover:bg-red-700 shadow-red-900/20' : 'bg-emerald-600 hover:bg-emerald-700 shadow-emerald-900/20'
-                }`}
+                className={`flex-1 py-3 rounded-xl font-bold bg-black text-white border border-white/10 hover:bg-white/10 transition-all shadow-lg`}
               >
                 {confirmText}
               </button>

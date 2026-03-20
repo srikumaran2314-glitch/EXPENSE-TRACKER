@@ -50,18 +50,20 @@ const Layout = ({ children, user, onLogout }: { children: React.ReactNode, user:
     navItems.push({ name: 'Admin', icon: Settings, path: '/admin' });
   }
 
-  const isPink = user?.gender === 'Female';
-  const isWhite = user?.theme === 'white';
+  const currentTheme = user?.theme || 'dark'; // 'dark' | 'light' | 'pink'
   
-  const themeBg = isWhite ? 'bg-white' : (isPink ? 'bg-[#4A1D24]' : 'bg-black');
-  const primaryText = isWhite ? 'text-black font-bold' : 'text-white';
-  const activeNav = isWhite ? 'bg-stone-200 text-black font-bold' : (isPink ? 'bg-[#FF8DA1]/20 text-white' : 'bg-white/10 text-white');
-  const sidebarBg = isWhite ? 'bg-white border-stone-300' : (isPink ? 'bg-[#2D1115] border-white/5' : 'bg-black border-white/10');
-  const headerBg = isWhite ? 'bg-white border-stone-300' : (isPink ? 'bg-[#2D1115] border-white/5' : 'bg-black border-white/10');
-  const cardBg = isWhite ? 'bg-white' : (isPink ? 'bg-[#3D171C]' : 'bg-black');
-  const borderCol = isWhite ? 'border-stone-300' : (isPink ? 'border-white/5' : 'border-white/10');
-  const mutedText = isWhite ? 'text-black font-bold' : 'text-white/40';
-  const boldTextColor = isWhite ? 'text-black font-bold' : 'text-white';
+  const themeBg = currentTheme === 'light' ? 'bg-white' : (currentTheme === 'pink' ? 'bg-[#FF8DA1]' : 'bg-[#121212]');
+  const textColor = currentTheme === 'light' ? 'text-black' : 'text-white';
+  const mutedText = currentTheme === 'light' ? 'text-stone-500' : (currentTheme === 'pink' ? 'text-white/70' : 'text-stone-400');
+  const boldTextColor = currentTheme === 'light' ? 'text-black font-bold' : 'text-white font-bold';
+  
+  const sidebarBg = currentTheme === 'light' ? 'bg-white border-stone-200' : (currentTheme === 'pink' ? 'bg-[#FF8DA1] border-white/20' : 'bg-[#121212] border-white/10');
+  const headerBg = currentTheme === 'light' ? 'bg-white border-stone-200' : (currentTheme === 'pink' ? 'bg-[#FF8DA1] border-white/20' : 'bg-[#121212] border-white/10');
+  const cardBg = currentTheme === 'light' ? 'bg-white' : (currentTheme === 'pink' ? 'bg-[#FF8DA1]' : 'bg-[#1e1e1e]');
+  const borderCol = currentTheme === 'light' ? 'border-stone-200' : (currentTheme === 'pink' ? 'border-white/20' : 'border-stone-700');
+  
+  const activeNav = 'bg-black text-white border border-white/20 shadow-sm';
+  const navText = 'bg-black text-white border border-white/20 shadow-sm';
 
   const [notifications, setNotifications] = useState<any[]>([]);
   const [showNotifications, setShowNotifications] = useState(false);
@@ -130,7 +132,7 @@ const Layout = ({ children, user, onLogout }: { children: React.ReactNode, user:
   };
 
   return (
-    <div className={`flex h-screen font-sans ${themeBg} transition-colors duration-500`}>
+    <div className={`flex h-screen font-sans ${themeBg} ${textColor} transition-colors duration-500`}>
       {/* Sidebar */}
       <AnimatePresence mode="wait">
         {isSidebarOpen && (
@@ -148,13 +150,13 @@ const Layout = ({ children, user, onLogout }: { children: React.ReactNode, user:
             >
               <div className="flex flex-col h-full">
                 <div className="p-6 flex items-center justify-between">
-                  <h1 className={`text-xl font-bold tracking-tight flex items-center gap-2 ${isWhite ? 'text-black' : (isPink ? 'text-[#FF8DA1]' : 'text-white')}`}>
+                  <h1 className={`text-xl font-bold tracking-tight flex items-center gap-2 ${textColor}`}>
                     <TrendingUp className="w-6 h-6" />
                     BUBU & DUDU
                   </h1>
                   <button 
                     onClick={() => setIsSidebarOpen(false)}
-                    className={`p-2 lg:hidden ${isWhite ? 'text-black hover:opacity-70' : 'text-white/40 hover:text-white'}`}
+                    className={`p-2 lg:hidden ${textColor} opacity-40 hover:opacity-100`}
                   >
                     <X className="w-5 h-5" />
                   </button>
@@ -168,10 +170,10 @@ const Layout = ({ children, user, onLogout }: { children: React.ReactNode, user:
                       onClick={() => {
                         if (window.innerWidth < 1024) setIsSidebarOpen(false);
                       }}
-                      className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${
+                      className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all font-bold ${
                         location.pathname === item.path
-                          ? activeNav + ' font-bold'
-                          : isWhite ? 'text-black font-bold hover:bg-stone-100' : (isPink ? 'text-white/60 hover:bg-white/5 hover:text-white' : 'text-white/40 hover:bg-white/5 hover:text-white')
+                          ? activeNav
+                          : navText
                       }`}
                     >
                       <item.icon className="w-5 h-5" />
@@ -180,12 +182,10 @@ const Layout = ({ children, user, onLogout }: { children: React.ReactNode, user:
                   ))}
                 </nav>
 
-              <div className={`p-4 border-t ${isWhite ? 'border-stone-200' : 'border-white/10'}`}>
+              <div className={`p-4 border-t ${borderCol}`}>
                 <button
                   onClick={onLogout}
-                  className={`flex items-center gap-3 w-full px-4 py-3 rounded-xl transition-all ${
-                    isWhite ? 'text-black font-bold hover:bg-red-50 hover:text-red-600' : (isPink ? 'text-white/60 hover:bg-red-500/10 hover:text-red-500' : 'text-white/40 hover:bg-red-500/10 hover:text-red-500')
-                  }`}
+                  className={`flex items-center gap-3 w-full px-4 py-3 rounded-xl transition-all font-bold bg-black text-white`}
                 >
                   <LogOut className="w-5 h-5" />
                   Logout
@@ -202,7 +202,7 @@ const Layout = ({ children, user, onLogout }: { children: React.ReactNode, user:
         <header className={`h-16 border-b flex items-center justify-between px-6 ${headerBg}`}>
           <button
             onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-            className={`p-2 rounded-lg ${isPink ? 'hover:bg-white/10' : 'hover:bg-white/10'}`}
+            className={`p-2 rounded-lg hover:bg-black/5 dark:hover:bg-white/5 ${textColor}`}
           >
             <Menu className="w-6 h-6" />
           </button>
@@ -211,11 +211,11 @@ const Layout = ({ children, user, onLogout }: { children: React.ReactNode, user:
             <div className="relative">
               <button 
                 onClick={() => setShowNotifications(!showNotifications)}
-                className={`p-2 relative ${isWhite ? 'text-black' : 'text-white/40 hover:text-white'}`}
+                className={`p-2 relative ${textColor} opacity-60 hover:opacity-100`}
               >
                 <Bell className="w-6 h-6" />
                 {notifications.some(n => !n.read) && (
-                  <span className={`absolute top-2 right-2 w-2.5 h-2.5 bg-red-500 border-2 ${isWhite ? 'border-white' : 'border-black'} rounded-full`}></span>
+                  <span className={`absolute top-2 right-2 w-2.5 h-2.5 bg-red-500 border-2 ${currentTheme === 'light' ? 'border-white' : 'border-[#121212]'} rounded-full`}></span>
                 )}
               </button>
 
@@ -229,8 +229,8 @@ const Layout = ({ children, user, onLogout }: { children: React.ReactNode, user:
                       exit={{ opacity: 0, y: 10, scale: 0.95 }}
                       className={`absolute right-0 mt-2 w-80 rounded-2xl shadow-2xl z-50 border overflow-hidden ${cardBg} ${borderCol}`}
                     >
-                      <div className={`p-4 border-b flex justify-between items-center ${isWhite ? 'bg-stone-50' : 'bg-white/5'}`}>
-                        <h4 className={`font-bold ${boldTextColor}`}>Notifications</h4>
+                      <div className={`p-4 border-b flex justify-between items-center ${currentTheme === 'light' ? 'bg-stone-50' : 'bg-white/5'}`}>
+                        <h4 className={`font-bold ${textColor}`}>Notifications</h4>
                         <span className="text-xs font-medium px-2 py-1 bg-red-500/20 text-red-400 rounded-full">
                           {notifications.filter(n => !n.read).length} New
                         </span>
@@ -244,11 +244,11 @@ const Layout = ({ children, user, onLogout }: { children: React.ReactNode, user:
                               key={n.id} 
                               onClick={() => markAsRead(n.id)}
                               className={`p-4 border-b last:border-0 cursor-pointer transition-colors ${
-                                !n.read ? (isWhite ? 'bg-stone-50' : (isPink ? 'bg-white/10' : 'bg-white/5')) : (isWhite ? 'hover:bg-stone-50' : 'hover:bg-white/5')
+                                !n.read ? (currentTheme === 'light' ? 'bg-stone-50' : 'bg-white/10') : (currentTheme === 'light' ? 'hover:bg-stone-50' : 'hover:bg-white/5')
                               }`}
                             >
-                              <p className={`text-sm font-bold ${boldTextColor}`}>{n.title}</p>
-                              <p className={`text-xs mt-1 ${isWhite ? 'text-black font-bold' : (isPink ? 'text-white/60' : 'text-white/40')}`}>{n.message}</p>
+                              <p className={`text-sm font-bold ${textColor}`}>{n.title}</p>
+                              <p className={`text-xs mt-1 ${currentTheme === 'light' ? 'text-stone-600' : 'text-white/60'}`}>{n.message}</p>
                               <p className={`text-[10px] mt-2 ${mutedText}`}>{format(n.createdAt?.toDate() || new Date(), 'MMM dd, HH:mm')}</p>
                             </div>
                           ))
@@ -259,12 +259,12 @@ const Layout = ({ children, user, onLogout }: { children: React.ReactNode, user:
                 )}
               </AnimatePresence>
             </div>
-            <div className={`flex items-center gap-3 pl-4 border-l ${isWhite ? 'border-stone-200' : 'border-white/10'}`}>
+            <div className={`flex items-center gap-3 pl-4 border-l ${borderCol}`}>
               <div className="text-right hidden sm:block">
-                <p className={`text-sm font-medium ${boldTextColor}`}>{user?.name}</p>
+                <p className={`text-sm font-bold ${textColor}`}>{user?.name}</p>
                 <p className={`text-xs ${mutedText}`}>{user?.email}</p>
               </div>
-              <div className="w-10 h-10 rounded-full flex items-center justify-center text-white font-bold" style={{ backgroundColor: isPink ? '#FF8DA1' : (isWhite ? '#1c1917' : '#333') }}>
+                  <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold bg-black text-white border border-white/10`}>
                 {user?.name?.[0]}
               </div>
             </div>

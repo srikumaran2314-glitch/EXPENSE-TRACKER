@@ -54,11 +54,15 @@ export default function Admin({ user }: { user: any }) {
     fetchStats();
   }, []);
 
-  const isWhite = user?.theme === 'white';
+  const currentTheme = user?.theme || 'dark';
+  const isPink = currentTheme === 'pink';
+  const isWhite = currentTheme === 'light';
+  const isDark = currentTheme === 'dark';
+
   const textColor = isWhite ? 'text-black font-bold' : 'text-white';
   const mutedText = isWhite ? 'text-black font-bold' : 'text-white/60';
-  const cardBg = isWhite ? 'bg-white' : 'bg-black';
-  const borderCol = isWhite ? 'border-stone-300' : 'border-white/10';
+  const cardBg = isWhite ? 'bg-white' : (isPink ? 'bg-[#FF8DA1]' : 'bg-[#1e1e1e]');
+  const borderCol = isWhite ? 'border-stone-200' : (isPink ? 'border-white/20' : 'border-white/10');
 
   if (loading) return <div className={`h-full flex items-center justify-center ${textColor}`}>Loading admin dashboard...</div>;
 
@@ -73,10 +77,10 @@ export default function Admin({ user }: { user: any }) {
           <p className={mutedText}>System-wide analytics and management</p>
         </div>
         <div className="flex gap-3">
-          <button className={`px-4 py-2 ${isWhite ? 'bg-stone-100 border-stone-300' : 'bg-white/5 border-white/10'} border rounded-xl text-sm font-bold ${textColor} hover:bg-white/10 transition-all`}>
+          <button className={`px-4 py-2 bg-black border border-white/20 rounded-xl text-sm font-bold text-white hover:bg-stone-900 transition-all`}>
             Export Logs
           </button>
-          <button className="px-4 py-2 bg-emerald-600 text-white rounded-xl text-sm font-bold hover:bg-emerald-700 transition-all shadow-lg shadow-emerald-900/20">
+          <button className="px-4 py-2 bg-black text-white rounded-xl text-sm font-bold hover:bg-stone-900 transition-all shadow-lg shadow-emerald-900/20">
             System Settings
           </button>
         </div>
