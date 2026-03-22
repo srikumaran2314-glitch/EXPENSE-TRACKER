@@ -191,7 +191,7 @@ service cloud.firestore {
     }
 
     match /expenses/{expenseId} {
-      allow read: if isAuthenticated() && (isOwner(resource.data.userId) || isOwner(resource.data.partnerId) || isAdmin());
+      allow read: if isAuthenticated() && (isOwner(resource.data.userId) || isOwner(resource.data.partnerId) || isPartner(resource.data.userId) || isAdmin());
       allow create: if isAuthenticated() && (isOwner(request.resource.data.userId) || isOwner(request.resource.data.partnerId)) && isValidExpense(request.resource.data);
       allow update: if isAuthenticated() && (isOwner(resource.data.userId) || isOwner(resource.data.partnerId) || isAdmin()) && 
                       isValidExpense(request.resource.data) &&
@@ -219,7 +219,7 @@ service cloud.firestore {
     }
 
     match /budgets/{budgetId} {
-      allow read: if isAuthenticated() && (isOwner(resource.data.userId) || isOwner(resource.data.partnerId) || isAdmin());
+      allow read: if isAuthenticated() && (isOwner(resource.data.userId) || isOwner(resource.data.partnerId) || isPartner(resource.data.userId) || isAdmin());
       allow create: if isAuthenticated() && isOwner(request.resource.data.userId) && isValidBudget(request.resource.data);
       allow update: if isAuthenticated() && (isOwner(resource.data.userId) || isOwner(resource.data.partnerId) || isAdmin()) && 
                       isValidBudget(request.resource.data) &&
@@ -228,7 +228,7 @@ service cloud.firestore {
     }
 
     match /wishlist/{wishlistId} {
-      allow read: if isAuthenticated() && (isOwner(resource.data.userId) || isOwner(resource.data.partnerId) || isAdmin());
+      allow read: if isAuthenticated() && (isOwner(resource.data.userId) || isOwner(resource.data.partnerId) || isPartner(resource.data.userId) || isAdmin());
       allow create: if isAuthenticated() && isOwner(request.resource.data.userId) && isValidWishlist(request.resource.data);
       allow update: if isAuthenticated() && (isOwner(resource.data.userId) || isOwner(resource.data.partnerId) || isAdmin()) && 
                       isValidWishlist(request.resource.data);
@@ -236,7 +236,7 @@ service cloud.firestore {
     }
 
     match /todos/{todoId} {
-      allow read: if isAuthenticated() && (isOwner(resource.data.userId) || isOwner(resource.data.partnerId) || isAdmin());
+      allow read: if isAuthenticated() && (isOwner(resource.data.userId) || isOwner(resource.data.partnerId) || isPartner(resource.data.userId) || isAdmin());
       allow create: if isAuthenticated() && isOwner(request.resource.data.userId) && isValidTodo(request.resource.data);
       allow update: if isAuthenticated() && (isOwner(resource.data.userId) || isOwner(resource.data.partnerId) || isAdmin()) && 
                       isValidTodo(request.resource.data);

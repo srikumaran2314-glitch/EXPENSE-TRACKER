@@ -397,6 +397,9 @@ export default function Chat({ user, partner }: { user: any, partner: any }) {
       setMessages(msgs);
       setGalleryItems(msgs.filter(m => m.type === 'photo' || m.type === 'video'));
       setLoading(false);
+    }, (error) => {
+      console.error("Error listening to chats:", error);
+      setLoading(false);
     });
 
     return () => unsubscribe();
@@ -417,6 +420,8 @@ export default function Chat({ user, partner }: { user: any, partner: any }) {
       const unsubscribe = onSnapshot(q, (snapshot) => {
         const docs = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
         setRecentExpenses(docs.slice(0, 10));
+      }, (error) => {
+        console.error("Error listening to recent expenses in chat:", error);
       });
 
       return () => unsubscribe();

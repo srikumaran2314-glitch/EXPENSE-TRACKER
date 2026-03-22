@@ -2,6 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { db } from '../firebase';
 import { doc, onSnapshot, collection, query, where } from 'firebase/firestore';
 import { motion } from 'motion/react';
+import { format } from 'date-fns';
 import { 
   Users, 
   TrendingUp, 
@@ -18,6 +19,7 @@ import {
 } from 'lucide-react';
 import { startOfMonth, endOfMonth } from 'date-fns';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, Cell, PieChart, Pie } from 'recharts';
+import { useNavigate } from 'react-router-dom';
 
 interface SalaryData {
   amount: number;
@@ -34,6 +36,7 @@ interface Expense {
 }
 
 export default function CoupleOverview({ user, partner }: { user: any; partner: any }) {
+  const navigate = useNavigate();
   const [mySalary, setMySalary] = useState<SalaryData | null>(null);
   const [partnerSalary, setPartnerSalary] = useState<SalaryData | null>(null);
   const [myExpenses, setMyExpenses] = useState<Expense[]>([]);
@@ -55,6 +58,8 @@ export default function CoupleOverview({ user, partner }: { user: any; partner: 
     // Listen to current user's salary
     const unsubMySalary = onSnapshot(doc(db, 'salaries', user.uid), (docSnap) => {
       if (docSnap.exists()) setMySalary(docSnap.data() as SalaryData);
+    }, (error) => {
+      console.error("Error listening to my salary in overview:", error);
     });
 
     // Listen to partner's salary
@@ -62,12 +67,14 @@ export default function CoupleOverview({ user, partner }: { user: any; partner: 
     if (partner?.uid) {
       unsubPartnerSalary = onSnapshot(doc(db, 'salaries', partner.uid), (docSnap) => {
         if (docSnap.exists()) setPartnerSalary(docSnap.data() as SalaryData);
+      }, (error) => {
+        console.error("Error listening to partner salary in overview:", error);
       });
     }
 
     // Listen to current month's expenses
-    const start = startOfMonth(new Date());
-    const end = endOfMonth(new Date());
+    const start = format(startOfMonth(new Date()), 'yyyy-MM-dd');
+    const end = format(endOfMonth(new Date()), 'yyyy-MM-dd');
     
     const qMy = query(
       collection(db, 'expenses'),
@@ -78,6 +85,8 @@ export default function CoupleOverview({ user, partner }: { user: any; partner: 
 
     const unsubMyExpenses = onSnapshot(qMy, (snapshot) => {
       setMyExpenses(snapshot.docs.map(doc => doc.data() as Expense));
+    }, (error) => {
+      console.error("Error listening to my expenses in overview:", error);
     });
 
     let unsubPartnerExpenses: () => void;
@@ -90,6 +99,8 @@ export default function CoupleOverview({ user, partner }: { user: any; partner: 
       );
       unsubPartnerExpenses = onSnapshot(qPartner, (snapshot) => {
         setPartnerExpenses(snapshot.docs.map(doc => doc.data() as Expense));
+      }, (error) => {
+        console.error("Error listening to partner expenses in overview:", error);
       });
     }
 
@@ -154,7 +165,7 @@ export default function CoupleOverview({ user, partner }: { user: any; partner: 
           <h2 className={`text-2xl font-bold ${textColor}`}>No Partner Linked</h2>
           <p className={mutedText}>Link a partner in your profile to see combined finance overviews and comparisons.</p>
           <button
-            onClick={() => window.location.href = '/profile'}
+            onClick={() => navigate('/profile')}
             className={`w-full py-4 rounded-2xl font-bold transition-all ${isWhite ? 'bg-stone-900 text-white hover:bg-stone-800' : (isPink ? 'bg-black text-white hover:bg-black/90 shadow-lg' : 'bg-emerald-500 text-white hover:bg-emerald-600 shadow-[0_0_20px_rgba(16,185,129,0.3)]')}`}
           >
             Go to Profile

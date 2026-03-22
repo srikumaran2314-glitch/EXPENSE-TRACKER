@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { doc, getDoc, updateDoc } from 'firebase/firestore';
-import { db } from '../firebase';
-import { User, Link as LinkIcon, Copy, Check, Shield, Smartphone, Mail, Edit2 } from 'lucide-react';
+import { db, auth } from '../firebase';
+import { sendPasswordResetEmail } from 'firebase/auth';
+import { User, Link as LinkIcon, Copy, Check, Shield, Smartphone, Mail, Edit2, Key, Lock, AlertCircle, ArrowRight } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 
 export default function Profile({ user }: { user: any }) {
@@ -80,11 +81,38 @@ export default function Profile({ user }: { user: any }) {
     }
   };
 
+  const handlePasswordReset = async () => {
+    if (!user.email) return;
+    setLoading(true);
+    try {
+      await sendPasswordResetEmail(auth, user.email);
+      setMessage({ type: 'success', text: 'Password reset email sent! Check your inbox.' });
+    } catch (err: any) {
+      setMessage({ type: 'error', text: err.message });
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div className="max-w-4xl mx-auto space-y-8">
-      <div>
-        <h2 className={`text-2xl font-bold ${boldTextColor}`}>Profile Settings</h2>
-        <p className={mutedText}>Manage your account and partner connection</p>
+      <div className="flex justify-between items-start">
+        <div>
+          <h2 className={`text-3xl font-black tracking-tight ${boldTextColor}`}>Profile Settings</h2>
+          <p className={mutedText}>Manage your account and partner connection</p>
+        </div>
+        {message.text && (
+          <motion.div
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className={`px-4 py-2 rounded-xl text-sm font-bold flex items-center gap-2 ${
+              message.type === 'success' ? 'bg-emerald-500/10 text-emerald-500' : 'bg-red-500/10 text-red-500'
+            }`}
+          >
+            {message.type === 'success' ? <Check className="w-4 h-4" /> : <AlertCircle className="w-4 h-4" />}
+            {message.text}
+          </motion.div>
+        )}
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
@@ -97,23 +125,23 @@ export default function Profile({ user }: { user: any }) {
             <p className={`${mutedText} text-sm`}>{user.email}</p>
             
             <div className="mt-6 space-y-2">
-              <p className={`text-xs font-bold ${isPink ? 'text-black/40' : 'text-white/40'} uppercase`}>Theme Preference</p>
+              <p className={`text-xs font-bold ${isPink ? 'text-black/40' : 'text-white/40'} uppercase tracking-widest`}>Theme Preference</p>
               <div className="flex gap-2 justify-center">
                 <button
                   onClick={() => handleUpdateTheme('dark')}
-                  className={`px-3 py-1 rounded-full text-xs font-bold border transition-all ${currentTheme === 'dark' ? 'bg-white text-black border-white' : 'bg-black text-white border-white/20'}`}
+                  className={`px-3 py-1.5 rounded-full text-xs font-bold border transition-all ${currentTheme === 'dark' ? 'bg-white text-black border-white' : 'bg-black text-white border-white/20'}`}
                 >
                   Black
                 </button>
                 <button
                   onClick={() => handleUpdateTheme('pink')}
-                  className={`px-3 py-1 rounded-full text-xs font-bold border transition-all ${currentTheme === 'pink' ? 'bg-black text-white border-black' : 'bg-black/10 text-black border-black/10'}`}
+                  className={`px-3 py-1.5 rounded-full text-xs font-bold border transition-all ${currentTheme === 'pink' ? 'bg-black text-white border-black' : 'bg-black/10 text-black border-black/10'}`}
                 >
                   Pink
                 </button>
                 <button
                   onClick={() => handleUpdateTheme('light')}
-                  className={`px-3 py-1 rounded-full text-xs font-bold border transition-all ${currentTheme === 'light' ? 'bg-black text-white border-black' : 'bg-white text-black border-stone-200'}`}
+                  className={`px-3 py-1.5 rounded-full text-xs font-bold border transition-all ${currentTheme === 'light' ? 'bg-black text-white border-black' : 'bg-white text-black border-stone-200'}`}
                 >
                   White
                 </button>
@@ -122,8 +150,9 @@ export default function Profile({ user }: { user: any }) {
 
             <button 
               onClick={() => setIsEditing(true)}
-              className={`mt-6 px-4 py-2 ${isWhite ? 'bg-black text-white' : (isPink ? 'bg-black text-white shadow-lg' : 'bg-white/10 backdrop-blur-md border border-white/30 text-white shadow-[0_0_15px_rgba(255,255,255,0.1)]')} text-sm font-bold rounded-xl hover:opacity-80 transition-all`}
+              className={`mt-6 w-full px-4 py-3 ${isWhite ? 'bg-black text-white' : (isPink ? 'bg-black text-white shadow-lg' : 'bg-white/10 backdrop-blur-md border border-white/30 text-white shadow-[0_0_15px_rgba(255,255,255,0.1)]')} text-sm font-bold rounded-xl hover:opacity-80 transition-all flex items-center justify-center gap-2`}
             >
+              <Edit2 className="w-4 h-4" />
               Edit Profile
             </button>
           </div>
@@ -143,7 +172,7 @@ export default function Profile({ user }: { user: any }) {
                       <label className={`text-sm font-bold ${mutedText}`}>Display Name</label>
                       <input
                         type="text"
-                        className={`w-full px-4 py-3 rounded-xl border ${borderCol} ${isPink ? 'bg-white/10' : 'bg-stone-800'} ${textColor} outline-none focus:ring-2 focus:ring-emerald-500`}
+                        className={`w-full px-4 py-3 rounded-xl border ${borderCol} ${isPink ? 'bg-white/10' : (isWhite ? 'bg-stone-50' : 'bg-stone-800')} ${textColor} outline-none focus:ring-2 focus:ring-emerald-500`}
                         value={editData.name}
                         onChange={(e) => setEditData({ ...editData, name: e.target.value })}
                         required
@@ -153,7 +182,7 @@ export default function Profile({ user }: { user: any }) {
                       <label className={`text-sm font-bold ${mutedText}`}>Mobile Number</label>
                       <input
                         type="tel"
-                        className={`w-full px-4 py-3 rounded-xl border ${borderCol} ${isPink ? 'bg-white/10' : 'bg-stone-800'} ${textColor} outline-none focus:ring-2 focus:ring-emerald-500`}
+                        className={`w-full px-4 py-3 rounded-xl border ${borderCol} ${isPink ? 'bg-white/10' : (isWhite ? 'bg-stone-50' : 'bg-stone-800')} ${textColor} outline-none focus:ring-2 focus:ring-emerald-500`}
                         value={editData.mobile}
                         onChange={(e) => setEditData({ ...editData, mobile: e.target.value })}
                         placeholder="+91 00000 00000"
@@ -163,14 +192,14 @@ export default function Profile({ user }: { user: any }) {
                       <button
                         type="button"
                         onClick={() => setIsEditing(false)}
-                        className={`flex-1 px-6 py-3 rounded-xl font-bold bg-black text-white hover:bg-stone-900 transition-all`}
+                        className={`flex-1 px-6 py-3 rounded-xl font-bold ${isWhite ? 'bg-stone-100 text-stone-600' : 'bg-white/5 text-white/60'} hover:opacity-80 transition-all`}
                       >
                         Cancel
                       </button>
                       <button
                         type="submit"
                         disabled={loading}
-                        className="flex-1 px-6 py-3 bg-black text-white rounded-xl font-bold hover:bg-stone-900 transition-all shadow-lg"
+                        className={`flex-1 px-6 py-3 ${primaryColor} text-white rounded-xl font-bold hover:opacity-90 transition-all shadow-lg`}
                       >
                         {loading ? 'Saving...' : 'Save Changes'}
                       </button>
@@ -183,15 +212,15 @@ export default function Profile({ user }: { user: any }) {
 
           <div className={`${cardBg} p-6 rounded-3xl shadow-sm border ${borderCol} space-y-4`}>
             <div className={`flex items-center gap-3 ${mutedText}`}>
-              <Mail className="w-5 h-5" />
+              <Mail className="w-5 h-5 opacity-60" />
               <span className="text-sm">{user.email}</span>
             </div>
             <div className={`flex items-center gap-3 ${mutedText}`}>
-              <Smartphone className="w-5 h-5" />
+              <Smartphone className="w-5 h-5 opacity-60" />
               <span className="text-sm">{user.mobile || 'No mobile added'}</span>
             </div>
             <div className={`flex items-center gap-3 ${mutedText}`}>
-              <Shield className="w-5 h-5" />
+              <Shield className="w-5 h-5 opacity-60" />
               <span className="text-sm">{user.isAdmin ? 'Administrator' : 'Standard User'}</span>
             </div>
           </div>
@@ -217,7 +246,7 @@ export default function Profile({ user }: { user: any }) {
             ) : (
               <div className="space-y-8">
                 <div className={`p-6 ${isPink ? 'bg-white/5' : 'bg-white/5'} rounded-2xl border ${borderCol}`}>
-                  <p className="text-sm font-bold opacity-40 uppercase mb-4">Your Partner Code</p>
+                  <p className="text-sm font-bold opacity-40 uppercase mb-4 tracking-widest">Your Partner Code</p>
                   <div className="flex items-center gap-4">
                     <div className={`flex-1 ${isPink ? 'bg-white/5' : (isWhite ? 'bg-stone-50' : 'bg-stone-800')} px-6 py-4 rounded-xl border-2 border-dashed ${isPink ? 'border-white/20' : 'border-white/20'} text-2xl font-mono font-bold tracking-widest text-center ${boldTextColor}`}>
                       {user.partnerCode}
@@ -244,7 +273,7 @@ export default function Profile({ user }: { user: any }) {
                 <form onSubmit={handleLinkPartner} className="space-y-4">
                   <div className="flex items-center gap-2 mb-2">
                     <LinkIcon className="w-4 h-4 text-emerald-600" />
-                    <p className="text-sm font-bold opacity-40 uppercase">Link by Code</p>
+                    <p className="text-sm font-bold opacity-40 uppercase tracking-widest">Link by Code</p>
                   </div>
                   <div className="flex flex-col sm:flex-row gap-4">
                     <div className="relative flex-1">
@@ -260,37 +289,53 @@ export default function Profile({ user }: { user: any }) {
                     <button
                       type="submit"
                       disabled={loading || !partnerCode}
-                      className={`px-8 py-4 ${primaryColor} ${primaryText} rounded-xl font-bold hover:opacity-90 transition-all disabled:opacity-50 shadow-lg shadow-emerald-600/20`}
+                      className={`px-8 py-4 ${primaryColor} text-white rounded-xl font-bold hover:opacity-90 transition-all disabled:opacity-50 shadow-lg shadow-emerald-600/20`}
                     >
                       {loading ? 'Linking...' : 'Connect Now'}
                     </button>
                   </div>
-                  {message.text && (
-                    <p className={`text-sm font-medium ${message.type === 'success' ? 'text-emerald-600' : 'text-red-600'}`}>
-                      {message.text}
-                    </p>
-                  )}
                 </form>
               </div>
             )}
           </div>
 
           <div className={`${cardBg} p-8 rounded-3xl shadow-sm border ${borderCol}`}>
-            <h3 className={`text-lg font-bold mb-6 ${boldTextColor}`}>Account Security</h3>
+            <h3 className={`text-lg font-bold mb-6 ${boldTextColor} flex items-center gap-2`}>
+              <Lock className="w-5 h-5 text-blue-500" />
+              Account Security
+            </h3>
             <div className="space-y-4">
-              <button className={`w-full text-left px-6 py-4 rounded-2xl border ${borderCol} bg-black text-white hover:bg-stone-900 transition-all flex justify-between items-center`}>
-                <div>
-                  <p className={`font-bold text-white`}>Change Password</p>
-                  <p className={`text-sm text-white/60`}>Update your account password</p>
+              <button 
+                onClick={handlePasswordReset}
+                disabled={loading}
+                className={`w-full text-left px-6 py-4 rounded-2xl border ${borderCol} ${isWhite ? 'bg-stone-50 hover:bg-stone-100' : 'bg-white/5 hover:bg-white/10'} transition-all flex justify-between items-center group`}
+              >
+                <div className="flex items-center gap-4">
+                  <div className={`w-10 h-10 rounded-xl ${isWhite ? 'bg-stone-100' : 'bg-white/5'} flex items-center justify-center group-hover:scale-110 transition-transform`}>
+                    <Key className={`w-5 h-5 ${isWhite ? 'text-black' : 'text-white'}`} />
+                  </div>
+                  <div>
+                    <p className={`font-bold ${textColor}`}>Change Password</p>
+                    <p className={`text-sm ${mutedText}`}>Send a reset link to your email</p>
+                  </div>
                 </div>
-                <Check className={`w-5 h-5 text-white/40`} />
+                <ArrowRight className={`w-5 h-5 ${mutedText} group-hover:translate-x-1 transition-transform`} />
               </button>
-              <button className={`w-full text-left px-6 py-4 rounded-2xl border ${borderCol} bg-black text-white hover:bg-stone-900 transition-all flex justify-between items-center`}>
-                <div>
-                  <p className={`font-bold text-white`}>Two-Factor Authentication</p>
-                  <p className={`text-sm text-white/60`}>Add an extra layer of security</p>
+              
+              <button 
+                onClick={() => setMessage({ type: 'info', text: 'Two-Factor Authentication coming soon!' })}
+                className={`w-full text-left px-6 py-4 rounded-2xl border ${borderCol} ${isWhite ? 'bg-stone-50 hover:bg-stone-100' : 'bg-white/5 hover:bg-white/10'} transition-all flex justify-between items-center group opacity-60`}
+              >
+                <div className="flex items-center gap-4">
+                  <div className={`w-10 h-10 rounded-xl ${isWhite ? 'bg-stone-100' : 'bg-white/5'} flex items-center justify-center`}>
+                    <Smartphone className={`w-5 h-5 ${isWhite ? 'text-black' : 'text-white'}`} />
+                  </div>
+                  <div>
+                    <p className={`font-bold ${textColor}`}>Two-Factor Authentication</p>
+                    <p className={`text-sm ${mutedText}`}>Add an extra layer of security (Soon)</p>
+                  </div>
                 </div>
-                <div className={`w-12 h-6 bg-white/10 rounded-full relative`}>
+                <div className={`w-12 h-6 ${isWhite ? 'bg-stone-200' : 'bg-white/10'} rounded-full relative`}>
                   <div className="absolute left-1 top-1 w-4 h-4 bg-white rounded-full shadow-sm"></div>
                 </div>
               </button>

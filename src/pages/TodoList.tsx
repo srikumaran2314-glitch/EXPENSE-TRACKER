@@ -42,6 +42,8 @@ export default function TodoList({ user }: { user: any }) {
         return 0;
       });
       setTodos(todoData);
+    }, (error) => {
+      console.error("Error listening to todos:", error);
     });
 
     return () => unsubscribe();

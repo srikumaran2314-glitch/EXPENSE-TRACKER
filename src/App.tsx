@@ -97,6 +97,8 @@ const Layout = ({ children, user, onLogout }: { children: React.ReactNode, user:
     );
     return onSnapshot(q, (snapshot) => {
       setNotifications(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
+    }, (error) => {
+      console.error("Error listening to notifications:", error);
     });
   }, [user?.uid]);
 
@@ -330,6 +332,8 @@ export default function App() {
       if (doc.exists()) {
         setUser((prev: any) => ({ ...prev, ...doc.data() }));
       }
+    }, (error) => {
+      console.error("Error listening to user profile:", error);
     });
 
     return () => unsubscribe();
@@ -345,6 +349,8 @@ export default function App() {
       if (doc.exists()) {
         setPartner({ uid: doc.id, ...doc.data() });
       }
+    }, (error) => {
+      console.error("Error listening to partner profile:", error);
     });
 
     return () => unsubscribe();

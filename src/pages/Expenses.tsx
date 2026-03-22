@@ -24,7 +24,7 @@ import {
   HandCoins,
   IndianRupee
 } from 'lucide-react';
-import { format, parseISO, isWithinInterval, startOfDay, endOfDay } from 'date-fns';
+import { format, parseISO, isWithinInterval, startOfDay, endOfDay, subDays, startOfMonth, endOfMonth, subMonths } from 'date-fns';
 import { motion, AnimatePresence } from 'motion/react';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
@@ -48,6 +48,7 @@ export default function Expenses({ user, partner }: { user: any, partner: any })
   const [modeFilter, setModeFilter] = useState('All');
   const [search, setSearch] = useState('');
   const [dateRange, setDateRange] = useState({ start: '', end: '' });
+  const [datePreset, setDatePreset] = useState('All Time');
   const [monthFilter, setMonthFilter] = useState('All');
   const [yearFilter, setYearFilter] = useState('All');
   const [deleteId, setDeleteId] = useState<string | null>(null);
@@ -199,6 +200,44 @@ export default function Expenses({ user, partner }: { user: any, partner: any })
     setIsDragging(false);
     const file = e.dataTransfer.files[0];
     if (file) handleFileUpload(file);
+  };
+
+  const applyPreset = (preset: string) => {
+    const today = new Date();
+    let start = '';
+    let end = format(today, 'yyyy-MM-dd');
+
+    switch (preset) {
+      case 'Today':
+        start = format(today, 'yyyy-MM-dd');
+        end = format(today, 'yyyy-MM-dd');
+        break;
+      case 'Yesterday':
+        const yesterday = subDays(today, 1);
+        start = format(yesterday, 'yyyy-MM-dd');
+        end = format(yesterday, 'yyyy-MM-dd');
+        break;
+      case 'Last 7 Days':
+        start = format(subDays(today, 7), 'yyyy-MM-dd');
+        break;
+      case 'This Month':
+        start = format(startOfMonth(today), 'yyyy-MM-dd');
+        end = format(endOfMonth(today), 'yyyy-MM-dd');
+        break;
+      case 'Last Month':
+        const lastMonth = subMonths(today, 1);
+        start = format(startOfMonth(lastMonth), 'yyyy-MM-dd');
+        end = format(endOfMonth(lastMonth), 'yyyy-MM-dd');
+        break;
+      case 'All Time':
+        start = '';
+        end = '';
+        break;
+      default:
+        return;
+    }
+    setDateRange({ start, end });
+    setDatePreset(preset);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -484,21 +523,69 @@ export default function Expenses({ user, partner }: { user: any, partner: any })
               onChange={(e) => setSearch(e.target.value)}
             />
           </div>
-          <div className="flex gap-2 items-center lg:col-span-2 justify-end">
-            <Calendar className={`w-5 h-5 ${isWhite ? 'text-black' : 'text-white/40'} shrink-0`} />
-            <input 
-              type="date" 
-              className={`flex-1 px-3 py-2 ${isWhite ? 'bg-stone-50 border-stone-300 text-black' : (isPink ? 'bg-white/10 border-white/20 text-white' : 'bg-white/5 border-white/10 text-white')} border rounded-xl text-sm outline-none`}
-              value={dateRange.start}
-              onChange={(e) => setDateRange({ ...dateRange, start: e.target.value })}
-            />
-            <span className={mutedText}>to</span>
-            <input 
-              type="date" 
-              className={`flex-1 px-3 py-2 ${isWhite ? 'bg-stone-50 border-stone-300 text-black' : (isPink ? 'bg-white/10 border-white/20 text-white' : 'bg-white/5 border-white/10 text-white')} border rounded-xl text-sm outline-none`}
-              value={dateRange.end}
-              onChange={(e) => setDateRange({ ...dateRange, end: e.target.value })}
-            />
+          <div className="flex flex-col gap-3 lg:col-span-2">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Calendar className={`w-4 h-4 ${isWhite ? 'text-black' : 'text-white/40'}`} />
+                <span className={`text-xs font-bold ${isWhite ? 'text-black' : 'text-white/40'} uppercase tracking-wider`}>Date Range Filter</span>
+              </div>
+              {(dateRange.start || dateRange.end) && (
+                <motion.div 
+                  initial={{ opacity: 0, x: 10 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  className="flex items-center gap-2"
+                >
+                  <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${isWhite ? 'bg-emerald-100 text-emerald-700' : 'bg-emerald-500/20 text-emerald-400'} border border-emerald-500/20`}>
+                    Range Active
+                  </span>
+                  <button 
+                    onClick={() => applyPreset('All Time')}
+                    className="text-[10px] font-bold text-red-500 hover:underline flex items-center gap-0.5"
+                  >
+                    <X className="w-3 h-3" />
+                    Reset
+                  </button>
+                </motion.div>
+              )}
+            </div>
+            
+            <div className="flex gap-2 items-center">
+              <div className="relative flex-1">
+                <input 
+                  type="date" 
+                  className={`w-full px-3 py-2.5 ${isWhite ? 'bg-stone-50 border-stone-300 text-black' : (isPink ? 'bg-white/10 border-white/20 text-white' : 'bg-white/5 border-white/10 text-white')} border rounded-xl text-sm outline-none focus:ring-2 ${primaryRing} transition-all`}
+                  value={dateRange.start}
+                  onChange={(e) => { setDateRange({ ...dateRange, start: e.target.value }); setDatePreset('Custom'); }}
+                />
+                <span className="absolute -top-2 left-3 px-1 bg-inherit text-[9px] font-bold uppercase tracking-tighter opacity-50">From</span>
+              </div>
+              <span className={`${mutedText} font-black`}>→</span>
+              <div className="relative flex-1">
+                <input 
+                  type="date" 
+                  className={`w-full px-3 py-2.5 ${isWhite ? 'bg-stone-50 border-stone-300 text-black' : (isPink ? 'bg-white/10 border-white/20 text-white' : 'bg-white/5 border-white/10 text-white')} border rounded-xl text-sm outline-none focus:ring-2 ${primaryRing} transition-all`}
+                  value={dateRange.end}
+                  onChange={(e) => { setDateRange({ ...dateRange, end: e.target.value }); setDatePreset('Custom'); }}
+                />
+                <span className="absolute -top-2 left-3 px-1 bg-inherit text-[9px] font-bold uppercase tracking-tighter opacity-50">To</span>
+              </div>
+            </div>
+
+            <div className="flex gap-1.5 overflow-x-auto pb-1 scrollbar-hide">
+              {['Today', 'Yesterday', 'Last 7 Days', 'This Month', 'Last Month', 'All Time'].map(preset => (
+                <button
+                  key={preset}
+                  onClick={() => applyPreset(preset)}
+                  className={`px-3 py-1.5 rounded-lg text-[10px] font-bold whitespace-nowrap transition-all border ${
+                    datePreset === preset
+                      ? (isWhite ? 'bg-black text-white border-black shadow-md' : 'bg-white/20 text-white border-white/40 shadow-lg')
+                      : (isWhite ? 'bg-stone-50 text-stone-500 border-stone-200 hover:bg-stone-100' : 'bg-white/5 text-white/50 border-white/5 hover:bg-white/10')
+                  }`}
+                >
+                  {preset}
+                </button>
+              ))}
+            </div>
           </div>
         </div>
 

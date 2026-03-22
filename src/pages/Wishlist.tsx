@@ -46,6 +46,8 @@ export default function Wishlist({ user }: { user: any }) {
         return b.createdAt?.seconds - a.createdAt?.seconds;
       });
       setItems(wishlistData);
+    }, (error) => {
+      console.error("Error listening to wishlist:", error);
     });
 
     return () => unsubscribe();

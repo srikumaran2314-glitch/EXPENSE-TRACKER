@@ -46,6 +46,8 @@ export default function Budgets({ user }: { user: any }) {
 
     const unsubscribeBudgets = onSnapshot(bQuery, (snapshot) => {
       setBudgets(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
+    }, (error) => {
+      console.error("Error listening to budgets:", error);
     });
 
     const start = format(startOfMonth(currentMonth), 'yyyy-MM-dd');
@@ -59,6 +61,8 @@ export default function Budgets({ user }: { user: any }) {
 
     const unsubscribeExpenses = onSnapshot(eQuery, (snapshot) => {
       setExpenses(snapshot.docs.map(doc => doc.data()));
+    }, (error) => {
+      console.error("Error listening to expenses in budgets:", error);
     });
 
     return () => {
