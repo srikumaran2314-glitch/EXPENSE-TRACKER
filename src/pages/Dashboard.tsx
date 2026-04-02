@@ -6,7 +6,11 @@ import {
 import { collection, query, where, onSnapshot, orderBy, or, limit, doc } from 'firebase/firestore';
 import { db } from '../firebase';
 import { TrendingUp, IndianRupee, Users, Calendar, HandCoins, ArrowRight, Receipt, Target, Heart, Wallet, PieChart as PieChartIcon } from 'lucide-react';
-import { format, startOfMonth, endOfMonth, isWithinInterval, parseISO } from 'date-fns';
+import { 
+  format, startOfMonth, endOfMonth, isWithinInterval, parseISO, 
+  startOfDay, endOfDay, subDays, startOfWeek, endOfWeek, 
+  subMonths, subYears, startOfYear, endOfYear, isSameDay
+} from 'date-fns';
 import { Link } from 'react-router-dom';
 
 const COLORS = ['#10b981', '#3b82f6', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899'];
@@ -46,6 +50,10 @@ export default function Dashboard({ user, partner }: { user: any, partner: any }
   const [loading, setLoading] = useState(true);
   const [salaryData, setSalaryData] = useState<any>(null);
   const [partnerSalaryData, setPartnerSalaryData] = useState<any>(null);
+  const [incomeEntries, setIncomeEntries] = useState<any[]>([]);
+  const [partnerIncomeEntries, setPartnerIncomeEntries] = useState<any[]>([]);
+  const [dateFilter, setDateFilter] = useState('This Month');
+  const [customRange, setCustomRange] = useState({ start: '', end: '' });
 
   const currentTheme = user?.theme || 'dark';
   const isPink = currentTheme === 'pink';
@@ -112,12 +120,34 @@ export default function Dashboard({ user, partner }: { user: any, partner: any }
       console.error("Error listening to dashboard salary:", error);
     });
 
+    // Listen to income entries
+    const incomeQuery = query(
+      collection(db, 'income_entries'),
+      where('userId', '==', user.uid)
+    );
+    const unsubscribeIncome = onSnapshot(incomeQuery, (snapshot) => {
+      setIncomeEntries(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
+    }, (error) => {
+      console.error("Error listening to dashboard income:", error);
+    });
+
     let unsubPartnerSalary: () => void;
+    let unsubscribePartnerIncome: () => void;
     if (partner?.uid) {
       unsubPartnerSalary = onSnapshot(doc(db, 'salaries', partner.uid), (docSnap) => {
         if (docSnap.exists()) setPartnerSalaryData(docSnap.data());
       }, (error) => {
         console.error("Error listening to dashboard partner salary:", error);
+      });
+
+      const partnerIncomeQuery = query(
+        collection(db, 'income_entries'),
+        where('userId', '==', partner.uid)
+      );
+      unsubscribePartnerIncome = onSnapshot(partnerIncomeQuery, (snapshot) => {
+        setPartnerIncomeEntries(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
+      }, (error) => {
+        console.error("Error listening to dashboard partner income:", error);
       });
     }
 
@@ -126,12 +156,44 @@ export default function Dashboard({ user, partner }: { user: any, partner: any }
       unsubscribeBudgets();
       unsubscribeWishlist();
       unsubSalary();
+      unsubscribeIncome();
       if (unsubPartnerSalary) unsubPartnerSalary();
+      if (unsubscribePartnerIncome) unsubscribePartnerIncome();
     };
   }, [user?.uid, partner?.uid]);
 
-  const monthStart = startOfMonth(now);
-  const monthEnd = endOfMonth(now);
+  const getFilteredRange = () => {
+    const today = new Date();
+    switch (dateFilter) {
+      case 'Today':
+        return { start: startOfDay(today), end: endOfDay(today) };
+      case 'Yesterday':
+        const yesterday = subDays(today, 1);
+        return { start: startOfDay(yesterday), end: endOfDay(yesterday) };
+      case 'This Week':
+        return { start: startOfWeek(today), end: endOfWeek(today) };
+      case 'This Month':
+        return { start: startOfMonth(today), end: endOfMonth(today) };
+      case 'Last Month':
+        const lastMonth = subMonths(today, 1);
+        return { start: startOfMonth(lastMonth), end: endOfMonth(lastMonth) };
+      case 'Last 3 Months':
+        return { start: startOfMonth(subMonths(today, 2)), end: endOfMonth(today) };
+      case 'Last 6 Months':
+        return { start: startOfMonth(subMonths(today, 5)), end: endOfMonth(today) };
+      case 'Last Year':
+        return { start: startOfYear(subYears(today, 1)), end: endOfYear(subYears(today, 1)) };
+      case 'Custom':
+        if (customRange.start && customRange.end) {
+          return { start: startOfDay(parseISO(customRange.start)), end: endOfDay(parseISO(customRange.end)) };
+        }
+        return { start: startOfMonth(today), end: endOfMonth(today) };
+      default:
+        return { start: startOfMonth(today), end: endOfMonth(today) };
+    }
+  };
+
+  const { start: filterStart, end: filterEnd } = getFilteredRange();
 
   const filteredRecentExpenses = expenses
     .filter(e => {
@@ -142,18 +204,35 @@ export default function Dashboard({ user, partner }: { user: any, partner: any }
     })
     .slice(0, 5);
 
-  const monthlyExpenses = expenses.filter(e => isWithinInterval(parseISO(e.date), { start: monthStart, end: monthEnd }));
+  const dashboardExpenses = expenses.filter(e => {
+    const expenseDate = parseISO(e.date);
+    return isWithinInterval(expenseDate, { start: filterStart, end: filterEnd });
+  });
   
-  const filteredChartExpenses = monthlyExpenses.filter(e => {
+  const filteredChartExpenses = dashboardExpenses.filter(e => {
     if (chartFilter === 'Both') return true;
     if (chartFilter === 'Me') return e.userId === user.uid;
     if (chartFilter === 'Partner') return e.userId !== user.uid;
     return true;
   });
 
-  const totalMonthly = monthlyExpenses.reduce((sum, e) => sum + e.amount, 0);
-  const myMonthly = monthlyExpenses.filter(e => e.userId === user.uid).reduce((sum, e) => sum + e.amount, 0);
-  const partnerMonthly = monthlyExpenses.filter(e => e.userId !== user.uid).reduce((sum, e) => sum + e.amount, 0);
+  const totalPeriod = dashboardExpenses.reduce((sum, e) => sum + e.amount, 0);
+  const myPeriod = dashboardExpenses.filter(e => e.userId === user.uid).reduce((sum, e) => sum + e.amount, 0);
+  const partnerPeriod = dashboardExpenses.filter(e => e.userId !== user.uid).reduce((sum, e) => sum + e.amount, 0);
+
+  const myPeriodIncome = incomeEntries
+    .filter(i => {
+      const incomeDate = parseISO(i.date);
+      return isWithinInterval(incomeDate, { start: filterStart, end: filterEnd });
+    })
+    .reduce((sum, i) => sum + i.amount, 0);
+
+  const partnerPeriodIncome = partnerIncomeEntries
+    .filter(i => {
+      const incomeDate = parseISO(i.date);
+      return isWithinInterval(incomeDate, { start: filterStart, end: filterEnd });
+    })
+    .reduce((sum, i) => sum + i.amount, 0);
 
   const totalOwedToMe = expenses
     .filter(e => e.receivableFrom && e.userId === user.uid)
@@ -171,8 +250,8 @@ export default function Dashboard({ user, partner }: { user: any, partner: any }
   ).map(([name, value]) => ({ name, value }));
 
   const userSplitData = [
-    { name: 'Me', value: myMonthly, color: isPink ? '#000000' : '#10b981' },
-    { name: partner?.name || 'Partner', value: partnerMonthly, color: isPink ? '#FFFFFF' : '#3b82f6' }
+    { name: 'Me', value: myPeriod, color: isPink ? '#000000' : '#10b981' },
+    { name: partner?.name || 'Partner', value: partnerPeriod, color: isPink ? '#FFFFFF' : '#3b82f6' }
   ];
 
   const pieData = chartFilter === 'Both' ? userSplitData : categoryData;
@@ -190,9 +269,9 @@ export default function Dashboard({ user, partner }: { user: any, partner: any }
   };
 
   const dailyData = Object.entries(
-    monthlyExpenses.reduce((acc: any, e) => {
-      const day = format(parseISO(e.date), 'dd');
-      if (!acc[day]) acc[day] = { me: 0, partner: 0 };
+    dashboardExpenses.reduce((acc: any, e) => {
+      const day = format(parseISO(e.date), 'dd MMM');
+      if (!acc[day]) acc[day] = { me: 0, partner: 0, rawDate: e.date };
       if (e.userId === user.uid) {
         acc[day].me += e.amount;
       } else {
@@ -203,8 +282,9 @@ export default function Dashboard({ user, partner }: { user: any, partner: any }
   ).map(([day, data]: any) => ({ 
     day, 
     me: data.me, 
-    partner: data.partner 
-  })).sort((a, b) => Number(a.day) - Number(b.day));
+    partner: data.partner,
+    rawDate: data.rawDate
+  })).sort((a, b) => a.rawDate.localeCompare(b.rawDate));
 
   const SkeletonCard = () => (
     <div className={`${cardBg} p-6 rounded-2xl border ${borderCol} animate-pulse`}>
@@ -256,18 +336,48 @@ export default function Dashboard({ user, partner }: { user: any, partner: any }
             )}
           </div>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex flex-wrap items-center gap-3">
+          <select
+            value={dateFilter}
+            onChange={(e) => setDateFilter(e.target.value)}
+            className={`${cardBg} px-4 py-2 rounded-xl border ${borderCol} text-sm font-bold ${textColor} outline-none focus:ring-2 focus:ring-white/20 transition-all`}
+          >
+            {['Today', 'Yesterday', 'This Week', 'This Month', 'Last Month', 'Last 3 Months', 'Last 6 Months', 'Last Year', 'Custom'].map(f => (
+              <option key={f} value={f} className={isDark ? 'bg-[#1e1e1e]' : 'bg-white'}>{f}</option>
+            ))}
+          </select>
+
+          {dateFilter === 'Custom' && (
+            <div className="flex items-center gap-2">
+              <input
+                type="date"
+                value={customRange.start}
+                onChange={(e) => setCustomRange({ ...customRange, start: e.target.value })}
+                className={`${cardBg} px-3 py-1.5 rounded-lg border ${borderCol} text-xs font-bold ${textColor} outline-none`}
+              />
+              <span className={mutedText}>to</span>
+              <input
+                type="date"
+                value={customRange.end}
+                onChange={(e) => setCustomRange({ ...customRange, end: e.target.value })}
+                className={`${cardBg} px-3 py-1.5 rounded-lg border ${borderCol} text-xs font-bold ${textColor} outline-none`}
+              />
+            </div>
+          )}
+
           <div className={`${cardBg} px-4 py-2 rounded-xl border ${borderCol} flex items-center gap-2 text-sm font-medium ${textColor}`}>
             <Calendar className={`w-4 h-4 ${mutedText}`} />
-            {format(now, 'MMM dd, yyyy')}
+            {dateFilter === 'Custom' && customRange.start && customRange.end 
+              ? `${format(parseISO(customRange.start), 'MMM dd')} - ${format(parseISO(customRange.end), 'MMM dd')}`
+              : format(filterStart, 'MMM dd') + (isSameDay(filterStart, filterEnd) ? '' : ` - ${format(filterEnd, 'MMM dd')}`)}
           </div>
         </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <StatCard 
-          title="Monthly Income" 
-          amount={salaryData?.amount || 0} 
+          title={`${dateFilter} Income`} 
+          amount={myPeriodIncome} 
           icon={Wallet} 
           color={isPink ? 'bg-black' : 'bg-emerald-500'} 
           cardBg={cardBg}
@@ -278,8 +388,8 @@ export default function Dashboard({ user, partner }: { user: any, partner: any }
           isPink={isPink}
         />
         <StatCard 
-          title="Monthly Spending" 
-          amount={myMonthly} 
+          title={`${dateFilter} Spending`} 
+          amount={myPeriod} 
           icon={TrendingUp} 
           color="bg-blue-500"
           cardBg={cardBg}
@@ -288,7 +398,7 @@ export default function Dashboard({ user, partner }: { user: any, partner: any }
           borderCol={borderCol}
           isWhite={isWhite}
           isPink={isPink}
-          trend={salaryData?.amount ? Math.round((myMonthly / salaryData.amount) * 100) : 0}
+          trend={myPeriodIncome ? Math.round((myPeriod / myPeriodIncome) * 100) : 0}
         />
         <StatCard 
           title="Net Balance" 
@@ -303,18 +413,20 @@ export default function Dashboard({ user, partner }: { user: any, partner: any }
           isWhite={isWhite}
           isPink={isPink}
         />
-        <StatCard 
-          title="Remaining" 
-          amount={(salaryData?.amount || 0) - myMonthly} 
-          icon={Target} 
-          color="bg-rose-500"
-          cardBg={cardBg}
-          textColor={textColor}
-          mutedText={mutedText}
-          borderCol={borderCol}
-          isWhite={isWhite}
-          isPink={isPink}
-        />
+        {myPeriodIncome > 0 && (
+          <StatCard 
+            title="Remaining" 
+            amount={myPeriodIncome - myPeriod} 
+            icon={Target} 
+            color="bg-rose-500"
+            cardBg={cardBg}
+            textColor={textColor}
+            mutedText={mutedText}
+            borderCol={borderCol}
+            isWhite={isWhite}
+            isPink={isPink}
+          />
+        )}
       </div>
 
       <div className="flex flex-col gap-4">
@@ -469,7 +581,7 @@ export default function Dashboard({ user, partner }: { user: any, partner: any }
                 </div>
               ) : (
                 budgets.slice(0, 3).map(budget => {
-                  const spent = monthlyExpenses.filter(e => e.category === budget.category).reduce((sum, e) => sum + e.amount, 0);
+                  const spent = dashboardExpenses.filter(e => e.category === budget.category).reduce((sum, e) => sum + e.amount, 0);
                   const percent = Math.min((spent / budget.amount) * 100, 100);
                   const isOver = spent > budget.amount;
                   return (

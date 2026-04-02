@@ -46,6 +46,47 @@ service cloud.firestore {
     //   - read: bool (required)
     //   - createdAt: timestamp (required)
     //
+    // Collection: salaries
+    // Document ID: {userId}
+    // Fields:
+    //   - userId: string (required)
+    //   - amount: number (required, positive)
+    //   - breakdown: map (optional)
+    //   - updatedAt: timestamp (optional)
+    //
+    // Collection: income_entries
+    // Document ID: {entryId}
+    // Fields:
+    //   - userId: string (required, owner)
+    //   - source: string (required, Salary/Gift/Bonus/Other)
+    //   - amount: number (required, positive)
+    //   - date: string (required, YYYY-MM-DD)
+    //   - createdAt: timestamp (optional)
+    //
+    // Collection: budgets
+    // Document ID: {budgetId}
+    // Fields:
+    //   - userId: string (required)
+    //   - partnerId: string (required)
+    //   - category: string (required)
+    //   - amount: number (required)
+    //   - month: string (required, YYYY-MM)
+    //
+    // Collection: wishlist
+    // Document ID: {wishlistId}
+    // Fields:
+    //   - userId: string (required)
+    //   - partnerId: string (required)
+    //   - title: string (required)
+    //   - estimatedAmount: number (required)
+    //
+    // Collection: todos
+    // Document ID: {todoId}
+    // Fields:
+    //   - userId: string (required)
+    //   - partnerId: string (required)
+    //   - task: string (required)
+    //
     // ===============================================================
 
     // ===============================================================
@@ -171,6 +212,15 @@ service cloud.firestore {
              (!('updatedAt' in data) || data.updatedAt is timestamp);
     }
 
+    function isValidIncomeEntry(data) {
+      return data.keys().hasAll(['userId', 'source', 'amount', 'date']) &&
+             data.userId is string &&
+             data.source in ['Salary', 'Gift', 'Bonus', 'Other'] &&
+             data.amount is number && data.amount >= 0 &&
+             isValidDate(data.date) &&
+             (!('createdAt' in data) || data.createdAt is timestamp);
+    }
+
     // ===============================================================
     // Rules
     // ===============================================================
@@ -249,6 +299,14 @@ service cloud.firestore {
       allow update: if isOwner(userId) && isValidSalary(request.resource.data) &&
                       request.resource.data.userId == resource.data.userId;
       allow delete: if isOwner(userId) || isAdmin();
+    }
+
+    match /income_entries/{entryId} {
+      allow read: if isAuthenticated() && (isOwner(resource.data.userId) || isPartner(resource.data.userId) || isAdmin());
+      allow create: if isAuthenticated() && isOwner(request.resource.data.userId) && isValidIncomeEntry(request.resource.data);
+      allow update: if isAuthenticated() && isOwner(resource.data.userId) && isValidIncomeEntry(request.resource.data) &&
+                      request.resource.data.userId == resource.data.userId;
+      allow delete: if isAuthenticated() && (isOwner(resource.data.userId) || isAdmin());
     }
 
     // Default deny

@@ -4,12 +4,14 @@ import { db } from '../firebase';
 import { PieChart, Plus, Trash2, Target, AlertCircle, CheckCircle2, ChevronLeft, ChevronRight, Wallet } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { format, startOfMonth, endOfMonth, addMonths, subMonths } from 'date-fns';
+import ConfirmDialog from '../components/ConfirmDialog';
 
 export default function Budgets({ user }: { user: any }) {
   const [budgets, setBudgets] = useState<any[]>([]);
   const [expenses, setExpenses] = useState<any[]>([]);
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [showAddModal, setShowAddModal] = useState(false);
+  const [deleteId, setDeleteId] = useState<string | null>(null);
   const [newBudget, setNewBudget] = useState({
     category: 'Food & Dining',
     amount: ''
@@ -91,10 +93,11 @@ export default function Budgets({ user }: { user: any }) {
     }
   };
 
-  const deleteBudget = async (id: string) => {
-    if (!window.confirm('Delete this budget?')) return;
+  const deleteBudget = async () => {
+    if (!deleteId) return;
     try {
-      await deleteDoc(doc(db, 'budgets', id));
+      await deleteDoc(doc(db, 'budgets', deleteId));
+      setDeleteId(null);
     } catch (err) {
       console.error('Error deleting budget:', err);
     }
@@ -197,7 +200,7 @@ export default function Budgets({ user }: { user: any }) {
                     <p className={`text-sm ${mutedText}`}>Limit: ₹{budget.amount.toLocaleString()}</p>
                   </div>
                   <button
-                    onClick={() => deleteBudget(budget.id)}
+                    onClick={() => setDeleteId(budget.id)}
                     className={`p-2 ${mutedText} hover:text-red-500 hover:bg-red-500/10 rounded-xl transition-all`}
                   >
                     <Trash2 className="w-5 h-5" />
@@ -295,6 +298,16 @@ export default function Budgets({ user }: { user: any }) {
           </div>
         )}
       </AnimatePresence>
+      <ConfirmDialog
+        isOpen={!!deleteId}
+        title="Delete Budget?"
+        message="Are you sure you want to delete this budget limit? This action cannot be undone."
+        confirmText="Delete"
+        onConfirm={deleteBudget}
+        onCancel={() => setDeleteId(null)}
+        isDanger={true}
+        theme={currentTheme}
+      />
     </div>
   );
 }

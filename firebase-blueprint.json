@@ -149,6 +149,19 @@
         "updatedAt": { "type": "string", "format": "date-time" }
       },
       "required": ["userId", "amount"]
+    },
+    "IncomeEntry": {
+      "title": "IncomeEntry",
+      "description": "Individual income record (salary, bonus, gift, etc.)",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string", "description": "User UID who received the income" },
+        "source": { "type": "string", "enum": ["Salary", "Gift", "Bonus", "Other"] },
+        "amount": { "type": "number" },
+        "date": { "type": "string", "format": "date" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["userId", "source", "amount", "date"]
     }
   },
   "firestore": {
@@ -183,6 +196,10 @@
     "salaries/{userId}": {
       "schema": "Salary",
       "description": "User salary and breakdown"
+    },
+    "income_entries/{entryId}": {
+      "schema": "IncomeEntry",
+      "description": "Individual income records"
     }
   }
 }

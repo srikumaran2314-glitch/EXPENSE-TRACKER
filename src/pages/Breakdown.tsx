@@ -57,6 +57,7 @@ export default function Breakdown({ user, partner }: { user: any; partner: any }
   const [breakdown, setBreakdown] = useState<{ [key: string]: number }>({});
   const [expenses, setExpenses] = useState<Expense[]>([]);
   const [lastMonthExpenses, setLastMonthExpenses] = useState<Expense[]>([]);
+  const [incomeEntries, setIncomeEntries] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
@@ -120,12 +121,28 @@ export default function Breakdown({ user, partner }: { user: any; partner: any }
       setLastMonthExpenses(snapshot.docs.map(doc => doc.data() as Expense));
     });
 
+    // Listen to income entries for current month
+    const incomeQ = query(
+      collection(db, 'income_entries'),
+      where('userId', '==', user.uid),
+      where('date', '>=', start),
+      where('date', '<=', end)
+    );
+    const unsubIncome = onSnapshot(incomeQ, (snapshot) => {
+      setIncomeEntries(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
+    });
+
     return () => {
       unsubSalary();
       unsubExpenses();
       unsubLastMonth();
+      unsubIncome();
     };
   }, [user?.uid]);
+
+  const totalIncomeThisMonth = useMemo(() => {
+    return incomeEntries.reduce((sum, entry) => sum + entry.amount, 0);
+  }, [incomeEntries]);
 
   const totalAllocated = useMemo(() => {
     return Object.values(breakdown).reduce((sum: number, val: number) => sum + (val || 0), 0);
@@ -146,7 +163,7 @@ export default function Breakdown({ user, partner }: { user: any; partner: any }
     return Object.values(categorySpending).reduce((sum: number, val: number) => sum + val, 0);
   }, [categorySpending]);
 
-  const netSavings = (salaryData?.amount || 0) - totalSpent;
+  const netSavings = totalIncomeThisMonth - totalSpent;
 
   const handleSave = async () => {
     if (!user?.uid || !salaryData) return;
@@ -300,8 +317,8 @@ export default function Breakdown({ user, partner }: { user: any; partner: any }
             <div className="absolute -right-4 -top-4 opacity-5 group-hover:opacity-10 transition-opacity">
               <IndianRupee className="w-24 h-24" />
             </div>
-            <p className={`text-sm font-bold ${mutedText} uppercase tracking-wider`}>Monthly Salary</p>
-            <p className={`text-3xl font-black ${textColor}`}>₹{salaryData.amount.toLocaleString()}</p>
+            <p className={`text-sm font-bold ${mutedText} uppercase tracking-wider`}>Actual Income</p>
+            <p className={`text-3xl font-black ${textColor}`}>₹{totalIncomeThisMonth.toLocaleString()}</p>
           </div>
           <div className={`p-6 rounded-3xl border ${cardBg} ${borderCol} space-y-2 relative overflow-hidden group`}>
             <div className="absolute -right-4 -top-4 opacity-5 group-hover:opacity-10 transition-opacity">
@@ -549,7 +566,7 @@ export default function Breakdown({ user, partner }: { user: any; partner: any }
                     <div className="space-y-1">
                       <p className={`text-sm font-bold ${textColor}`}>Savings Rate</p>
                       <p className={`text-xs ${mutedText}`}>
-                        You are aiming to save <span className="font-black text-indigo-500">{((breakdown['Savings'] / salaryData.amount) * 100).toFixed(1)}%</span> of your income this month.
+                        You are aiming to save <span className="font-black text-indigo-500">{((breakdown['Savings'] / (totalIncomeThisMonth || salaryData.amount)) * 100).toFixed(1)}%</span> of your income this month.
                       </p>
                     </div>
                   </div>

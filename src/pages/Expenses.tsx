@@ -57,6 +57,8 @@ export default function Expenses({ user, partner }: { user: any, partner: any })
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [isPurgeModalOpen, setIsPurgeModalOpen] = useState(false);
   const [purgeConfig, setPurgeConfig] = useState({ month: 'All', year: format(new Date(), 'yyyy') });
+  const [isBulkDeleteConfirmOpen, setIsBulkDeleteConfirmOpen] = useState(false);
+  const [isPurgeConfirmOpen, setIsPurgeConfirmOpen] = useState(false);
   const [isBulkDeleting, setIsBulkDeleting] = useState(false);
 
   const currentTheme = user?.theme || 'dark';
@@ -390,26 +392,27 @@ export default function Expenses({ user, partner }: { user: any, partner: any })
     }
   };
 
-  const handleBulkDelete = async () => {
+  const handleBulkDelete = () => {
     if (selectedIds.length === 0) return;
-    if (!confirm(`Are you sure you want to delete ${selectedIds.length} selected expenses?`)) return;
+    setIsBulkDeleteConfirmOpen(true);
+  };
 
+  const executeBulkDelete = async () => {
+    setIsBulkDeleteConfirmOpen(false);
     setIsBulkDeleting(true);
     try {
       for (const id of selectedIds) {
         await deleteDoc(doc(db, 'expenses', id));
       }
       setSelectedIds([]);
-      alert(`Successfully deleted ${selectedIds.length} expenses.`);
     } catch (err) {
       console.error(err);
-      alert('Failed to delete some expenses');
     } finally {
       setIsBulkDeleting(false);
     }
   };
 
-  const handlePurge = async () => {
+  const handlePurge = () => {
     const itemsToPurge = expenses.filter(e => {
       const expenseDate = parseISO(e.date);
       const matchesMonth = purgeConfig.month === 'All' || format(expenseDate, 'MM') === purgeConfig.month;
@@ -418,26 +421,29 @@ export default function Expenses({ user, partner }: { user: any, partner: any })
     });
 
     if (itemsToPurge.length === 0) {
-      alert('No data found for the selected period.');
       return;
     }
+    
+    setIsPurgeConfirmOpen(true);
+  };
 
-    const periodLabel = purgeConfig.month === 'All' 
-      ? `all data for the year ${purgeConfig.year}` 
-      : `${months.find(m => m.value === purgeConfig.month)?.label} ${purgeConfig.year}`;
+  const executePurge = async () => {
+    const itemsToPurge = expenses.filter(e => {
+      const expenseDate = parseISO(e.date);
+      const matchesMonth = purgeConfig.month === 'All' || format(expenseDate, 'MM') === purgeConfig.month;
+      const matchesYear = format(expenseDate, 'yyyy') === purgeConfig.year;
+      return matchesMonth && matchesYear;
+    });
 
-    if (!confirm(`CRITICAL: Are you sure you want to PERMANENTLY DELETE ${itemsToPurge.length} records from ${periodLabel}? This cannot be undone.`)) return;
-
+    setIsPurgeConfirmOpen(false);
     setIsBulkDeleting(true);
     try {
       for (const item of itemsToPurge) {
         await deleteDoc(doc(db, 'expenses', item.id));
       }
       setIsPurgeModalOpen(false);
-      alert(`Successfully purged ${itemsToPurge.length} records.`);
     } catch (err) {
       console.error(err);
-      alert('Failed to purge some data');
     } finally {
       setIsBulkDeleting(false);
     }
@@ -798,13 +804,15 @@ export default function Expenses({ user, partner }: { user: any, partner: any })
                           <ChevronRight className="w-4 h-4" />
                         </button>
                         {expense.receiptUrl && (
-                          <button 
-                            onClick={() => window.open(expense.receiptUrl, '_blank')}
+                          <a 
+                            href={expense.receiptUrl} 
+                            target="_blank" 
+                            rel="noopener noreferrer"
                             className={`p-2 ${isWhite ? 'bg-black text-white shadow-lg' : (isPink ? 'bg-black text-white shadow-lg' : 'bg-white/10 backdrop-blur-md border border-white/30 text-white shadow-[0_0_10px_rgba(255,255,255,0.1)]')} rounded-lg transition-all hover:opacity-80`}
                             title="View Receipt"
                           >
                             <Download className="w-4 h-4" />
-                          </button>
+                          </a>
                         )}
                         <button 
                           onClick={() => setEditingExpense(expense)}
@@ -1186,13 +1194,15 @@ export default function Expenses({ user, partner }: { user: any, partner: any })
                         </div>
                       )}
                       <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                        <button 
-                          onClick={() => window.open(viewingExpense.receiptUrl, '_blank')}
+                        <a 
+                          href={viewingExpense.receiptUrl} 
+                          target="_blank" 
+                          rel="noopener noreferrer"
                           className={`px-6 py-3 ${isWhite ? 'bg-black text-white shadow-lg' : (isPink ? 'bg-black text-white shadow-lg' : 'bg-white/10 backdrop-blur-md border border-white/30 text-white shadow-[0_0_15px_rgba(255,255,255,0.2)]')} rounded-2xl font-bold flex items-center gap-2 hover:opacity-80 transition-all`}
                         >
                           <Download className="w-5 h-5" />
                           Download Receipt
-                        </button>
+                        </a>
                       </div>
                     </div>
                   </div>
@@ -1300,6 +1310,28 @@ export default function Expenses({ user, partner }: { user: any, partner: any })
           </div>
         )}
       </AnimatePresence>
+
+      <ConfirmDialog
+        isOpen={isBulkDeleteConfirmOpen}
+        title="Delete Selected Expenses?"
+        message={`Are you sure you want to delete ${selectedIds.length} selected expenses? This action cannot be undone.`}
+        confirmText="Delete All"
+        onConfirm={executeBulkDelete}
+        onCancel={() => setIsBulkDeleteConfirmOpen(false)}
+        isDanger={true}
+        theme={currentTheme}
+      />
+
+      <ConfirmDialog
+        isOpen={isPurgeConfirmOpen}
+        title="Purge Data?"
+        message={`CRITICAL: Are you sure you want to PERMANENTLY DELETE records for the selected period? This cannot be undone.`}
+        confirmText="Purge Everything"
+        onConfirm={executePurge}
+        onCancel={() => setIsPurgeConfirmOpen(false)}
+        isDanger={true}
+        theme={currentTheme}
+      />
 
       <ConfirmDialog
         isOpen={!!deleteId}

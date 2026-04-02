@@ -4,10 +4,12 @@ import { db } from '../firebase';
 import { Heart, Plus, Trash2, CheckCircle, Circle, TrendingUp, DollarSign, Image as ImageIcon, X } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { format } from 'date-fns';
+import ConfirmDialog from '../components/ConfirmDialog';
 
 export default function Wishlist({ user }: { user: any }) {
   const [items, setItems] = useState<any[]>([]);
   const [showAddModal, setShowAddModal] = useState(false);
+  const [deleteId, setDeleteId] = useState<string | null>(null);
   const [newItem, setNewItem] = useState({
     title: '',
     description: '',
@@ -87,10 +89,11 @@ export default function Wishlist({ user }: { user: any }) {
     }
   };
 
-  const deleteItem = async (id: string) => {
-    if (!window.confirm('Are you sure you want to remove this item?')) return;
+  const deleteItem = async () => {
+    if (!deleteId) return;
     try {
-      await deleteDoc(doc(db, 'wishlist', id));
+      await deleteDoc(doc(db, 'wishlist', deleteId));
+      setDeleteId(null);
     } catch (err) {
       console.error('Error deleting wishlist item:', err);
     }
@@ -218,7 +221,7 @@ export default function Wishlist({ user }: { user: any }) {
                   />
                 </div>
                 <button
-                  onClick={() => deleteItem(item.id)}
+                  onClick={() => setDeleteId(item.id)}
                   className="p-2 text-red-400 hover:text-red-600 hover:bg-red-500/10 rounded-xl transition-all opacity-0 group-hover:opacity-100"
                 >
                   <Trash2 className="w-5 h-5" />
@@ -319,6 +322,16 @@ export default function Wishlist({ user }: { user: any }) {
           </div>
         )}
       </AnimatePresence>
+      <ConfirmDialog
+        isOpen={!!deleteId}
+        title="Remove Item?"
+        message="Are you sure you want to remove this item from your wishlist? This action cannot be undone."
+        confirmText="Remove"
+        onConfirm={deleteItem}
+        onCancel={() => setDeleteId(null)}
+        isDanger={true}
+        theme={currentTheme}
+      />
     </div>
   );
 }
